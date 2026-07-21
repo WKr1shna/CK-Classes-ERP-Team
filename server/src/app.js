@@ -19,6 +19,7 @@ const resourceRoutes = require('./routes/resourceRoutes')
 const userRoutes = require('./routes/userRoutes')
 const activationRoutes = require('./routes/activationRoutes')
 const aiRoutes = require('./routes/aiRoutes')
+const { getAllowedOrigins } = require('./config/corsOrigins')
 
 const app = express()
 
@@ -29,20 +30,14 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cookieParser())
 
 // CORS setup
-// CLIENT_URL may be a single origin or a comma-separated list (e.g. staging + prod)
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map((o) => o.trim()).filter(Boolean)
-  : (process.env.NODE_ENV === 'production'
-      ? [] // no safe default in production - CLIENT_URL must be set
-      : ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173', 'http://localhost:5050'])
-
 app.use(cors({
   origin: (origin, callback) => {
     // Allow non-browser requests (e.g. Postman, curl, server-to-server) which send no Origin header
     if (!origin) {
       return callback(null, true)
     }
-    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
+    const allowedOrigins = getAllowedOrigins()
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true)
     }
     return callback(new Error('CORS policy: This origin is not allowed to access this API.'))
