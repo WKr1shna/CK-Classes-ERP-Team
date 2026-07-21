@@ -1,24 +1,31 @@
 const { Queue } = require('bullmq')
 const connection = require('./connection')
 
-const emailTransactionalQueue = new Queue('email-transactional', {
-  connection,
-  defaultJobOptions: {
-    attempts: 3,
-    backoff: {
-      type: 'exponential',
-      delay: 2000
-    },
-    removeOnComplete: true,
-    removeOnFail: false
-  }
-})
+let emailTransactionalQueue = null
 
-emailTransactionalQueue.on('error', (err) => {
-  if (err.code === 'ECONNREFUSED' && !process.env.REDIS_URL) {
-    return
+if (process.env.REDIS_URL && connection) {
+  emailTransactionalQueue = new Queue('email-transactional', {
+    connection,
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 2000
+      },
+      removeOnComplete: true,
+      removeOnFail: false
+    }
+  })
+
+  emailTransactionalQueue.on('error', (err) => {
+    console.error('[emailTransactionalQueue Error]:', err.message)
+  })
+} else {
+  // Fallback dummy stub when REDIS_URL is not set so BullMQ does not connect or keep event loop open
+  emailTransactionalQueue = {
+    add: async () => null,
+    on: () => {}
   }
-  console.error('[emailTransactionalQueue Error]:', err.message)
-})
+}
 
 module.exports = emailTransactionalQueue
