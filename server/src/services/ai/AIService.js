@@ -7,7 +7,9 @@ require('../../models/Announcement')
 require('../../models/Homework')
 require('../../models/Exam')
 require('../../models/StudentFee')
+require('../../models/Resource')
 
+const Resource = require('../../models/Resource')
 const AIProviderFactory = require('./AIProviderFactory')
 const StudentService = require('../StudentService')
 const TeacherService = require('../TeacherService')
@@ -159,6 +161,80 @@ class AIService {
       response: responseText,
       provider: process.env.AI_PROVIDER || 'groq',
       timestamp: new Date()
+    }
+  }
+
+  /**
+   * Generate structured Quiz / Question Paper from ERP Resource or Topic
+   * @param {Object} user User context
+   * @param {Object} params { resourceId, topic, className, count, difficulty }
+   */
+  async generateQuizFromResource(user, params = {}) {
+    let resourceTitle = 'General ERP Curriculum'
+    let resourceDetails = ''
+
+    if (params.resourceId) {
+      try {
+        const resDoc = await Resource.findById(params.resourceId).populate('subject')
+        if (resDoc) {
+          resourceTitle = resDoc.title
+          resourceDetails = `Title: ${resDoc.title}\nCategory: ${resDoc.category}\nClass: ${resDoc.class || 'N/A'}\nDescription: ${resDoc.description || ''}\nTags: ${(resDoc.tags || []).join(', ')}`
+        }
+      } catch (err) {
+        // Fallback to topic
+      }
+    }
+
+    const count = parseInt(params.count, 10) || 5
+    const difficulty = params.difficulty || 'Medium'
+    const className = params.className || 'Class 10'
+    const topic = params.topic || params.subject || 'General Studies'
+
+    const systemPrompt = `You are an expert academic examiner for C.K. Classes. Your task is to generate a structured exam question paper based on the provided study resource / topic.
+
+CRITICAL: Output MUST be a valid JSON object matching this exact schema and NOTHING ELSE (no markdown backticks, no markdown formatting outside JSON):
+{
+  "title": "${resourceTitle} - Test Paper",
+  "className": "${className}",
+  "topic": "${topic}",
+  "totalMarks": ${count * 2},
+  "difficulty": "${difficulty}",
+  "questions": [
+    {
+      "id": 1,
+      "type": "mcq",
+      "marks": 2,
+      "question": "Question text here",
+      "options": ["A) Option 1", "B) Option 2", "C) Option 3", "D) Option 4"],
+      "answer": "A) Option 1",
+      "explanation": "Step-by-step solution"
+    }
+  ]
+}`
+
+    const userPrompt = `Generate a ${count}-question ${difficulty} test paper for ${className} on topic "${topic}".
+Context Source Data:
+${resourceDetails || `Topic: ${topic}\nClass: ${className}`}
+`
+
+    const provider = AIProviderFactory.getProvider()
+    const rawResponse = await provider.generateResponse(userPrompt, systemPrompt)
+
+    try {
+      // Strip markdown code fences if present
+      const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim()
+      const parsedQuiz = JSON.parse(cleanJson)
+      return parsedQuiz
+    } catch (e) {
+      return {
+        title: `${resourceTitle} Test Paper`,
+        className,
+        topic,
+        totalMarks: count * 2,
+        difficulty,
+        rawText: rawResponse,
+        questions: []
+      }
     }
   }
 }
