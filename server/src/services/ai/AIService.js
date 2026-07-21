@@ -1,16 +1,17 @@
 // Ensure Mongoose models are registered for population
-require('../../models/User')
-require('../../models/Student')
-require('../../models/Teacher')
-require('../../models/Subject')
-require('../../models/Announcement')
-require('../../models/Homework')
-require('../../models/Exam')
-require('../../models/StudentFee')
+const User = require('../../models/User')
+const Student = require('../../models/Student')
+const Teacher = require('../../models/Teacher')
+const Subject = require('../../models/Subject')
+const Announcement = require('../../models/Announcement')
+const Homework = require('../../models/Homework')
+const Exam = require('../../models/Exam')
+const StudentFee = require('../../models/StudentFee')
 
 const AIProviderFactory = require('./AIProviderFactory')
 const StudentService = require('../StudentService')
 const TeacherService = require('../TeacherService')
+const SubjectService = require('../SubjectService')
 const HomeworkService = require('../HomeworkService')
 const ExamService = require('../ExamService')
 const StudentFeeService = require('../StudentFeeService')
@@ -33,6 +34,78 @@ class AIService {
       `Current Date & Time: ${new Date().toISOString()}`,
       `CRITICAL INSTRUCTION: Base your response ONLY on the provided ERP data below. Do NOT hallucinate fake dates, cities, branches, or events. If no records exist in the provided context, state that clearly.`
     ]
+
+    // 0. Fetch Real-time Institutional Statistics & Overview Metrics
+    try {
+      const [totalStudents, activeStudents, totalTeachers, totalSubjects, totalExams, totalAnnouncements, totalParents] = await Promise.all([
+        Student.countDocuments(),
+        Student.countDocuments({ status: { $regex: /^active$/i } }),
+        Teacher.countDocuments(),
+        Subject.countDocuments(),
+        Exam.countDocuments(),
+        Announcement.countDocuments(),
+        User.countDocuments({ role: { $regex: /^parent$/i } })
+      ])
+
+      contextLines.push('\n[C.K. Classes Institutional Statistics & Overview Metrics]:')
+      contextLines.push(`- Total Students Registered in Institute: ${totalStudents} (Active Students: ${activeStudents})`)
+      contextLines.push(`- Total Teachers / Faculty Mentors: ${totalTeachers}`)
+      contextLines.push(`- Total Parents Registered: ${totalParents}`)
+      contextLines.push(`- Total Subjects Offered: ${totalSubjects}`)
+      contextLines.push(`- Total Scheduled Exams: ${totalExams}`)
+      contextLines.push(`- Total System Announcements: ${totalAnnouncements}`)
+
+      // If Admin, Staff, or Teacher role, also include recent students directory snapshot and subjects
+      if (['admin', 'staff', 'teacher', 'superadmin'].includes(role)) {
+        try {
+          if (typeof StudentService.getAllStudents === 'function') {
+            const studentsRes = await StudentService.getAllStudents({ limit: 20 }, user)
+            const studentList = studentsRes.students || studentsRes.data || (Array.isArray(studentsRes) ? studentsRes : [])
+            if (studentList.length > 0) {
+              contextLines.push('\n[Recent Students Snapshot in Directory]:')
+              studentList.forEach(st => {
+                contextLines.push(`- Student: ${st.firstName} ${st.lastName} | ID: ${st.studentId} | Class/Grade: ${st.class || 'N/A'} | Status: ${st.status || 'Active'}`)
+              })
+            }
+          }
+        } catch (e) {
+          // Graceful degradation on student list
+        }
+
+        try {
+          if (typeof TeacherService.getAllTeachers === 'function') {
+            const teachersRes = await TeacherService.getAllTeachers({ limit: 20 }, user)
+            const teacherList = teachersRes.teachers || teachersRes.data || (Array.isArray(teachersRes) ? teachersRes : [])
+            if (teacherList.length > 0) {
+              contextLines.push('\n[Faculty Mentors Snapshot]:')
+              teacherList.forEach(t => {
+                const subjs = Array.isArray(t.subjects) ? t.subjects.join(', ') : (t.subjects || 'General')
+                contextLines.push(`- Teacher: ${t.firstName} ${t.lastName} | ID: ${t.teacherId} | Qualification: ${t.qualification || 'N/A'} | Subjects: ${subjs}`)
+              })
+            }
+          }
+        } catch (e) {
+          // Graceful degradation on teacher list
+        }
+
+        try {
+          if (typeof SubjectService !== 'undefined' && typeof SubjectService.getAllSubjects === 'function') {
+            const subjectsRes = await SubjectService.getAllSubjects({ limit: 20 })
+            const subjectList = subjectsRes.subjects || subjectsRes.data || (Array.isArray(subjectsRes) ? subjectsRes : [])
+            if (subjectList.length > 0) {
+              contextLines.push('\n[Academic Subjects Directory]:')
+              subjectList.forEach(s => {
+                contextLines.push(`- Subject: "${s.name}" | Code: ${s.code || 'N/A'} | Class/Grade: ${s.class || 'All'}`)
+              })
+            }
+          }
+        } catch (e) {
+          // Graceful degradation
+        }
+      }
+    } catch (e) {
+      // Graceful degradation on statistics
+    }
 
     // 1. Fetch Announcements relevant to role
     try {
