@@ -62,15 +62,15 @@ export default function Home() {
   })
 
   // Fade out pure video scroll indicator as user scrolls
-  const initialScrollHintOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
+  const initialScrollHintOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
   
-  // Transition website navbar & page content in as video finishes (progress 0.75 to 0.95)
-  const pageTransitionOpacity = useTransform(scrollYProgress, [0.75, 0.95], [0, 1])
-  const pageTransitionY = useTransform(scrollYProgress, [0.75, 0.95], [60, 0])
-  const pageTransitionScale = useTransform(scrollYProgress, [0.75, 0.95], [0.97, 1])
+  // Transition website content in swiftly as scroll reaches 0.5 - 0.75 so text is 100% solid & crystal clear
+  const pageTransitionOpacity = useTransform(scrollYProgress, [0.45, 0.75], [0, 1])
+  const pageTransitionY = useTransform(scrollYProgress, [0.45, 0.75], [40, 0])
+  const pageTransitionScale = useTransform(scrollYProgress, [0.45, 0.75], [0.98, 1])
   
-  // Video overlay darkens slightly into the dark theme as transition completes
-  const videoDarkenOverlay = useTransform(scrollYProgress, [0.7, 0.95], [0, 0.75])
+  // Darken video background into dark obsidian space as transition completes
+  const videoDarkenOverlay = useTransform(scrollYProgress, [0.45, 0.75], [0, 0.85])
 
   // Handle Video Metadata
   useEffect(() => {
@@ -91,7 +91,7 @@ export default function Home() {
     }
   }, [])
 
-  // Scrubbing & End-of-Video Ambient Loop handler
+  // Scrubbing & Exact Last 2-Seconds Ambient Video Loop
   useEffect(() => {
     const video = videoRef.current
     if (!video || !videoDuration) return
@@ -110,9 +110,9 @@ export default function Home() {
 
       const latest = scrollYProgress.get()
 
-      // When scroll reaches end of video track (latest >= 0.92), play smooth ambient background loop of last 2.5 seconds
-      if (latest >= 0.92) {
-        const loopStart = Math.max(0, videoDuration - 2.5)
+      // When scroll finishes (latest >= 0.85), play seamless ambient loop of EXACT last 2.0 seconds
+      if (latest >= 0.85) {
+        const loopStart = Math.max(0, videoDuration - 2.0)
         if (video.paused) {
           video.play().catch(() => {})
         }
@@ -149,7 +149,7 @@ export default function Home() {
   // Track window scroll for sticky navbar styling after transition
   useEffect(() => {
     const handleScroll = () => {
-      setScrolledNav(window.scrollY > window.innerHeight * 2.2)
+      setScrolledNav(window.scrollY > window.innerHeight * 1.5)
     }
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
@@ -204,8 +204,8 @@ export default function Home() {
         className={cn(
           "fixed top-0 left-0 right-0 z-50 h-16 transition-all duration-300 flex items-center justify-between px-8 md:px-16 w-full border-b border-transparent pointer-events-auto",
           scrolledNav 
-            ? "bg-[#030712]/95 backdrop-blur-xl border-b-slate-800/80 shadow-2xl shadow-black/90" 
-            : "bg-[#030712]/60 backdrop-blur-md border-b-white/10"
+            ? "bg-[#030712] border-b-slate-800/90 shadow-2xl shadow-black/90" 
+            : "bg-[#030712]/80 backdrop-blur-md border-b-white/10"
         )}
       >
         <div className="max-w-7xl mx-auto w-full flex items-center justify-between">
@@ -216,7 +216,7 @@ export default function Home() {
             <span className="font-bold text-base tracking-tight text-white">C.K. Classes</span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-8 text-xs font-semibold text-slate-200">
+          <nav className="hidden md:flex items-center gap-8 text-xs font-bold text-slate-100">
             <a href="#home" className="hover:text-indigo-400 transition-colors">Home</a>
             <a href="#courses" className="hover:text-indigo-400 transition-colors">Courses</a>
             <a href="#features" className="hover:text-indigo-400 transition-colors">ERP Features</a>
@@ -227,7 +227,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <Link 
               to="/login" 
-              className="text-xs font-semibold text-slate-200 hover:text-white transition-colors px-3 py-2"
+              className="text-xs font-bold text-slate-100 hover:text-white transition-colors px-3 py-2"
             >
               Login
             </Link>
@@ -289,41 +289,41 @@ export default function Home() {
         className="relative z-30 min-h-screen bg-[#030712] text-white pt-20 pb-24 -mt-20 border-t border-slate-800/80"
       >
         {/* Dark Space Grid Accent */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_10%,#000_70%,transparent_100%)] z-0 opacity-50 pointer-events-none" />
-        <div className="absolute top-0 left-1/4 h-[400px] w-[600px] rounded-full bg-indigo-600/15 filter blur-[120px] -translate-y-1/2 z-0 pointer-events-none" />
-        <div className="absolute top-1/3 right-1/4 h-[300px] w-[500px] rounded-full bg-blue-600/15 filter blur-[120px] z-0 pointer-events-none" />
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_10%,#000_70%,transparent_100%)] z-0 opacity-60 pointer-events-none" />
+        <div className="absolute top-0 left-1/4 h-[400px] w-[600px] rounded-full bg-indigo-600/20 filter blur-[120px] -translate-y-1/2 z-0 pointer-events-none" />
+        <div className="absolute top-1/3 right-1/4 h-[300px] w-[500px] rounded-full bg-blue-600/20 filter blur-[120px] z-0 pointer-events-none" />
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-24">
           
           {/* Main Hero Section */}
           <div className="text-center flex flex-col items-center pt-8">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-400/40 bg-indigo-500/20 text-xs font-bold text-indigo-200 mb-6 shadow-xl backdrop-blur-md">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-indigo-400/50 bg-indigo-500/25 text-xs font-bold text-indigo-200 mb-6 shadow-xl backdrop-blur-md">
               <Sparkles className="h-4 w-4 text-amber-300 animate-pulse" />
               <span>Surat's Premier Coaching Academy & Institutional ERP 2.0</span>
             </div>
 
-            <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white max-w-4xl leading-[1.08]">
+            <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white max-w-4xl leading-[1.08] drop-shadow-lg">
               Building Bright Futures, <br />
               <span className="bg-gradient-to-r from-blue-400 via-indigo-300 to-amber-300 bg-clip-text text-transparent">
                 One Student at a Time.
               </span>
             </h1>
 
-            <p className="mt-6 text-base sm:text-xl text-[#E2E8F0] max-w-2xl leading-relaxed font-medium">
+            <p className="mt-6 text-base sm:text-xl text-[#F8FAFC] max-w-2xl leading-relaxed font-semibold drop-shadow-md">
               Empowering students from Class 1 to 12 in Science and Commerce through expert faculty, real-time AI analytics, and academic excellence.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
               <a
                 href="/login"
-                className="px-8 h-13 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-indigo-600/40 transition-all duration-200 active:scale-95 cursor-pointer"
+                className="px-8 h-13 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm flex items-center justify-center gap-2.5 shadow-xl shadow-indigo-600/50 transition-all duration-200 active:scale-95 cursor-pointer"
               >
                 Enroll Now
                 <ArrowRight className="h-4 w-4" />
               </a>
               <a
                 href="#courses"
-                className="px-6 h-13 rounded-2xl border border-slate-700 bg-slate-900/90 backdrop-blur-sm text-slate-100 hover:bg-slate-800 font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95"
+                className="px-6 h-13 rounded-2xl border border-slate-700 bg-slate-900 text-white hover:bg-slate-800 font-bold text-sm flex items-center justify-center gap-2 transition-all duration-200 active:scale-95"
               >
                 <BookOpen className="h-4 w-4 text-slate-300" />
                 Explore Courses
@@ -338,13 +338,13 @@ export default function Home() {
                 key={idx}
                 whileHover={{ y: -4, scale: 1.02 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="p-6 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 rounded-2xl shadow-2xl flex flex-col items-center text-center relative group overflow-hidden"
+                className="p-6 bg-[#0B132B] border border-slate-800 rounded-2xl shadow-2xl flex flex-col items-center text-center relative group overflow-hidden"
               >
-                <div className="absolute top-0 left-0 right-0 h-[2.5px] bg-gradient-to-r from-blue-500 to-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-t-full" />
+                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-blue-500 to-indigo-500 scale-x-0 group-hover:scale-x-100 transition-transform duration-300 rounded-t-full" />
                 <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
                   <AnimatedCounter value={item.value} />
                 </h3>
-                <p className="text-xs text-[#CBD5E1] font-bold uppercase tracking-wider mt-2">
+                <p className="text-xs text-indigo-200 font-extrabold uppercase tracking-widest mt-2">
                   {item.label}
                 </p>
               </motion.div>
@@ -354,11 +354,11 @@ export default function Home() {
           {/* ERP Core Features Section */}
           <div id="features" className="space-y-10 pt-6">
             <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <span className="text-xs font-bold text-indigo-300 tracking-widest uppercase">Institutional Intelligence</span>
+              <span className="text-xs font-black text-indigo-300 tracking-widest uppercase">Institutional Intelligence</span>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
                 AI-Powered ERP Modules for School & Coaching Control
               </h2>
-              <p className="text-sm sm:text-base text-[#CBD5E1] font-normal">
+              <p className="text-sm sm:text-base text-[#F1F5F9] font-medium">
                 Integrated Groq Llama 3.3 AI, MongoDB Atlas, and modern academic management workflows.
               </p>
             </div>
@@ -367,49 +367,49 @@ export default function Home() {
               {erpFeatures.map((feat, i) => (
                 <div 
                   key={i} 
-                  className="p-6 bg-slate-900/80 border border-slate-800 rounded-2xl hover:border-indigo-500/60 transition duration-300 space-y-4 hover:shadow-2xl hover:shadow-indigo-500/20 group"
+                  className="p-6 bg-[#0B132B] border border-slate-800 rounded-2xl hover:border-indigo-500/70 transition duration-300 space-y-4 hover:shadow-2xl hover:shadow-indigo-500/30 group"
                 >
                   <div className="h-12 w-12 rounded-xl bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform">
                     {feat.icon}
                   </div>
-                  <h4 className="text-lg font-bold text-white tracking-tight">{feat.title}</h4>
-                  <p className="text-xs sm:text-sm text-[#CBD5E1] leading-relaxed font-normal">{feat.desc}</p>
+                  <h4 className="text-lg font-black text-white tracking-tight">{feat.title}</h4>
+                  <p className="text-xs sm:text-sm text-[#E2E8F0] leading-relaxed font-normal">{feat.desc}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Role Access Section */}
-          <div id="portals" className="bg-gradient-to-b from-slate-900 via-slate-950 to-black p-8 sm:p-12 rounded-3xl border border-slate-800/90 space-y-8 text-center shadow-2xl">
+          <div id="portals" className="bg-gradient-to-b from-[#0B132B] via-slate-950 to-black p-8 sm:p-12 rounded-3xl border border-slate-800 space-y-8 text-center shadow-2xl">
             <div className="space-y-2">
-              <h3 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">Role-Based Access Portals</h3>
-              <p className="text-xs sm:text-sm text-[#CBD5E1]">Log in with role-specific permissions and scope</p>
+              <h3 className="text-2xl sm:text-4xl font-black text-white tracking-tight">Role-Based Access Portals</h3>
+              <p className="text-xs sm:text-sm text-[#F1F5F9] font-medium">Log in with role-specific permissions and scope</p>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-left">
-              <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                <div className="h-10 w-10 rounded-full bg-blue-500/20 border border-blue-500/40 flex items-center justify-center text-blue-300 font-bold text-sm">1</div>
-                <h4 className="font-bold text-white">Admin Portal</h4>
-                <p className="text-xs sm:text-sm text-[#CBD5E1]">Complete institutional oversight, financial reports, faculty management & system settings.</p>
+              <div className="p-6 rounded-2xl bg-[#0B132B] border border-slate-800 space-y-3">
+                <div className="h-10 w-10 rounded-full bg-blue-500/30 border border-blue-400/50 flex items-center justify-center text-blue-200 font-black text-sm">1</div>
+                <h4 className="font-black text-white">Admin Portal</h4>
+                <p className="text-xs sm:text-sm text-[#E2E8F0] font-normal">Complete institutional oversight, financial reports, faculty management & system settings.</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                <div className="h-10 w-10 rounded-full bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300 font-bold text-sm">2</div>
-                <h4 className="font-bold text-white">Faculty Portal</h4>
-                <p className="text-xs sm:text-sm text-[#CBD5E1]">Attendance entry, 1-click AI exam paper generator, homework assignments & student feedback logs.</p>
+              <div className="p-6 rounded-2xl bg-[#0B132B] border border-slate-800 space-y-3">
+                <div className="h-10 w-10 rounded-full bg-indigo-500/30 border border-indigo-400/50 flex items-center justify-center text-indigo-200 font-black text-sm">2</div>
+                <h4 className="font-black text-white">Faculty Portal</h4>
+                <p className="text-xs sm:text-sm text-[#E2E8F0] font-normal">Attendance entry, 1-click AI exam paper generator, homework assignments & student feedback logs.</p>
               </div>
 
-              <div className="p-6 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-3">
-                <div className="h-10 w-10 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300 font-bold text-sm">3</div>
-                <h4 className="font-bold text-white">Student & Parent Portal</h4>
-                <p className="text-xs sm:text-sm text-[#CBD5E1]">Check academic performance, view assigned homework, fee payment receipts & exam schedules.</p>
+              <div className="p-6 rounded-2xl bg-[#0B132B] border border-slate-800 space-y-3">
+                <div className="h-10 w-10 rounded-full bg-purple-500/30 border border-purple-400/50 flex items-center justify-center text-purple-200 font-black text-sm">3</div>
+                <h4 className="font-black text-white">Student & Parent Portal</h4>
+                <p className="text-xs sm:text-sm text-[#E2E8F0] font-normal">Check academic performance, view assigned homework, fee payment receipts & exam schedules.</p>
               </div>
             </div>
 
             <div className="pt-2">
               <Link 
                 to="/login"
-                className="inline-flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-sm shadow-xl shadow-indigo-600/40 transition"
+                className="inline-flex items-center gap-2 px-8 h-12 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black text-sm shadow-xl shadow-indigo-600/50 transition"
               >
                 Access ERP Management Portal
                 <ArrowRight className="h-4 w-4" />
@@ -418,7 +418,7 @@ export default function Home() {
           </div>
 
           {/* Footer */}
-          <footer className="border-t border-slate-800/80 pt-8 pb-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 gap-4">
+          <footer className="border-t border-slate-800/80 pt-8 pb-4 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-300 font-medium gap-4">
             <p>© {new Date().getFullYear()} C.K. Classes ERP Platform. Parvat Patiya, Surat, India. All rights reserved.</p>
             <div className="flex items-center gap-6">
               <Link to="/login" className="hover:text-indigo-300 transition">Portal Login</Link>
