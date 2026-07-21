@@ -55,22 +55,14 @@ export default function Home() {
   const [videoDuration, setVideoDuration] = useState(0)
   const [showNavbar, setShowNavbar] = useState(false)
 
-  // Scroll Progress tracking for the 250vh pure video track
+  // Scroll Progress tracking for the 220vh pure video track
   const { scrollYProgress } = useScroll({
     target: videoTrackRef,
     offset: ['start start', 'end end']
   })
 
-  // 3D Parallax Depth Recede Transforms
-  // Video slowly recedes, scales down, and fades into 3D background depth as scroll completes
-  const videoScale = useTransform(scrollYProgress, [0.55, 0.95], [1, 0.85])
-  const videoOpacity = useTransform(scrollYProgress, [0.65, 0.98], [1, 0.35])
-  const videoY = useTransform(scrollYProgress, [0.55, 0.95], [0, -50])
-  const initialScrollHintOpacity = useTransform(scrollYProgress, [0, 0.2], [1, 0])
-
-  // UI Page Content slides up in front over the receding video
-  const contentOpacity = useTransform(scrollYProgress, [0.55, 0.9], [0, 1])
-  const contentY = useTransform(scrollYProgress, [0.55, 0.9], [120, 0])
+  // Fade out pure video scroll indicator as user scrolls
+  const initialScrollHintOpacity = useTransform(scrollYProgress, [0, 0.25], [1, 0])
 
   // Handle Video Metadata
   useEffect(() => {
@@ -110,7 +102,7 @@ export default function Home() {
 
       const latest = scrollYProgress.get()
 
-      // When scroll finishes (latest >= 0.85), play seamless ambient loop of EXACT last 1.0 second
+      // When scroll reaches end of video track (latest >= 0.85), play seamless ambient loop of EXACT last 1.0 second
       if (latest >= 0.85) {
         const loopStart = Math.max(0, videoDuration - 1.0)
         if (video.paused) {
@@ -196,7 +188,7 @@ export default function Home() {
   ]
 
   return (
-    <div className="relative min-h-screen w-full bg-[#030712] font-sans text-white selection:bg-amber-500 selection:text-slate-950 overflow-x-hidden">
+    <div className="relative min-h-screen w-full bg-[#030712] font-sans text-white selection:bg-amber-500 selection:text-slate-950">
       
       {/* Dynamic Dark Modern Navbar (Fades in when scrolling into content) */}
       <motion.header
@@ -242,19 +234,12 @@ export default function Home() {
       </motion.header>
 
       {/* ========================================================================= */}
-      {/* 1. PURE SCROLL-DRIVEN VIDEO SECTION (3D Depth Recede Fade into Background) */}
+      {/* 1. PURE SCROLL-DRIVEN VIDEO SECTION (No navbar, no headers on initial load)  */}
       {/* ========================================================================= */}
-      <div ref={videoTrackRef} className="relative h-[250vh] w-full">
+      <div ref={videoTrackRef} className="relative h-[220vh] w-full">
         
-        {/* Sticky Fullscreen Frame with 3D Depth Recede */}
-        <motion.div 
-          style={{ 
-            scale: videoScale, 
-            opacity: videoOpacity, 
-            y: videoY 
-          }}
-          className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-black rounded-b-[40px] transform-gpu origin-center shadow-2xl"
-        >
+        {/* Sticky Fullscreen Frame */}
+        <div className="sticky top-0 h-screen w-full overflow-hidden flex items-center justify-center bg-black">
           
           {/* HTML5 Video element with GPU hardware acceleration */}
           <video
@@ -274,26 +259,22 @@ export default function Home() {
             <span>Scroll to play video & enter website</span>
             <ChevronDown className="h-4 w-4 text-amber-300 animate-bounce" />
           </motion.div>
-        </motion.div>
+        </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. GOLDEN LIGHT CINEMATIC UI (Slides up smoothly in front over video)       */}
+      {/* 2. GOLDEN LIGHT CINEMATIC UI (Connected directly to video light rays)       */}
       {/* ========================================================================= */}
-      <motion.div 
-        style={{ 
-          opacity: contentOpacity, 
-          y: contentY 
-        }}
+      <div 
         id="home"
-        className="relative z-30 min-h-screen bg-[#030712] text-white pt-20 pb-24 -mt-[60vh] border-t border-amber-500/40 shadow-[0_-25px_60px_rgba(245,158,11,0.3)] rounded-t-[40px]"
+        className="relative z-30 min-h-screen bg-[#030712] text-white pt-16 pb-24 border-t border-amber-500/30 shadow-[0_-15px_50px_rgba(245,158,11,0.25)]"
       >
         {/* Radiant Golden Light Beams (Matching classes.mp4 video light rays) */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[650px] bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(245,158,11,0.35),transparent_100%)] z-0 pointer-events-none rounded-t-[40px]" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[350px] bg-[radial-gradient(ellipse_50%_35%_at_50%_0%,rgba(251,191,36,0.4),transparent_100%)] z-0 filter blur-[40px] pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[650px] bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(245,158,11,0.3),transparent_100%)] z-0 pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[350px] bg-[radial-gradient(ellipse_50%_35%_at_50%_0%,rgba(251,191,36,0.35),transparent_100%)] z-0 filter blur-[40px] pointer-events-none" />
         
         {/* Top Golden Light Beam Line */}
-        <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-amber-400 to-transparent z-10 shadow-[0_0_35px_rgba(251,191,36,0.9)] rounded-t-[40px]" />
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent z-10 shadow-[0_0_35px_rgba(251,191,36,0.9)]" />
 
         {/* Dark Space Grid Accent */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_10%,#000_70%,transparent_100%)] z-0 opacity-60 pointer-events-none" />
@@ -304,12 +285,12 @@ export default function Home() {
           <div className="text-center flex flex-col items-center pt-8">
             <div className="inline-flex items-center gap-2 px-4.5 py-1.5 rounded-full border border-amber-400/60 bg-amber-500/20 text-xs font-bold text-amber-200 mb-6 shadow-xl shadow-amber-500/20 backdrop-blur-md">
               <Sparkles className="h-4 w-4 text-amber-300 animate-pulse" />
-              <span>Surat's Premier Coaching Academy & Institutional ERP 2.0</span>
+              <span className="font-sketch text-sm sm:text-base tracking-wide text-amber-200">Surat's Premier Coaching Academy & Institutional ERP 2.0</span>
             </div>
 
             <h1 className="text-4xl sm:text-7xl font-black tracking-tight text-white max-w-4xl leading-[1.08] drop-shadow-2xl">
               Building Bright Futures, <br />
-              <span className="bg-gradient-to-r from-amber-200 via-amber-400 to-yellow-300 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(245,158,11,0.5)]">
+              <span className="font-handwriting text-5xl sm:text-8xl tracking-wide bg-gradient-to-r from-amber-200 via-amber-300 to-yellow-200 bg-clip-text text-transparent drop-shadow-[0_0_35px_rgba(245,158,11,0.6)] font-bold">
                 One Student at a Time.
               </span>
             </h1>
@@ -359,7 +340,7 @@ export default function Home() {
           {/* ERP Core Features Section */}
           <div id="features" className="space-y-10 pt-6">
             <div className="text-center space-y-3 max-w-2xl mx-auto">
-              <span className="text-xs font-black text-amber-400 tracking-widest uppercase">Institutional Intelligence</span>
+              <span className="font-handwriting text-2xl font-bold text-amber-300 tracking-wide">✨ Institutional Intelligence</span>
               <h2 className="text-3xl sm:text-5xl font-black text-white tracking-tight">
                 AI-Powered ERP Modules for School & Coaching Control
               </h2>
@@ -432,7 +413,7 @@ export default function Home() {
           </footer>
 
         </div>
-      </motion.div>
+      </div>
     </div>
   )
 }
