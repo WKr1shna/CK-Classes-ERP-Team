@@ -14,6 +14,7 @@ import com.example.ckclasses.R
 import com.example.ckclasses.data.api.RetrofitClient
 import com.example.ckclasses.data.repository.AuthRepository
 import com.example.ckclasses.databinding.ActivityMainBinding
+import com.example.ckclasses.ui.ai.AiAssistantFragment
 import com.example.ckclasses.ui.announcements.AnnouncementsFragment
 import com.example.ckclasses.ui.attendance.AttendanceFragment
 import com.example.ckclasses.ui.auth.LoginActivity
@@ -73,6 +74,7 @@ class MainActivity : AppCompatActivity() {
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_dashboard -> replaceFragment(AdminDashboardFragment(), "Dashboard")
+                R.id.nav_ai -> replaceFragment(AiAssistantFragment(), "AI Assistant (Groq)")
                 R.id.nav_students -> replaceFragment(StudentsFragment(), "Students Directory")
                 R.id.nav_teachers -> replaceFragment(TeachersFragment(), "Faculty Directory")
                 R.id.nav_subjects -> replaceFragment(SubjectsFragment(), "Subjects & Curriculum")
@@ -89,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             true
         }
     }
+
 
     private fun replaceFragment(fragment: Fragment, title: String) {
         supportActionBar?.title = title

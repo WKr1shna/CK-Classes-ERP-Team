@@ -115,4 +115,9 @@ interface ApiService {
     // Users
     @GET("users")
     suspend fun getUsers(): Response<ApiResponse<List<User>>>
+
+    // AI Assistant
+    @POST("ai/query")
+    suspend fun queryAi(@Body request: AiQueryRequest): Response<ApiResponse<AiQueryResponseData>>
 }
+
