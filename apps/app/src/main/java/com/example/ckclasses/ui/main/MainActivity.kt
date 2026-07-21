@@ -14,6 +14,7 @@ import com.example.ckclasses.R
 import com.example.ckclasses.data.api.RetrofitClient
 import com.example.ckclasses.data.repository.AuthRepository
 import com.example.ckclasses.databinding.ActivityMainBinding
+import com.example.ckclasses.ui.ai.AiAssistantFragment
 import com.example.ckclasses.ui.announcements.AnnouncementsFragment
 import com.example.ckclasses.ui.attendance.AttendanceFragment
 import com.example.ckclasses.ui.auth.LoginActivity
@@ -42,8 +43,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         sessionManager = SessionManager(this)
+        RetrofitClient.init(this)
 
         setSupportActionBar(binding.toolbar)
+
+
         toggle = ActionBarDrawerToggle(
             this, binding.drawerLayout, binding.toolbar,
             R.string.navigation_drawer_open, R.string.navigation_drawer_close
@@ -73,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         binding.navigationView.setNavigationItemSelectedListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.nav_dashboard -> replaceFragment(AdminDashboardFragment(), "Dashboard")
+                R.id.nav_ai -> replaceFragment(AiAssistantFragment(), "AI Assistant (Groq)")
                 R.id.nav_students -> replaceFragment(StudentsFragment(), "Students Directory")
                 R.id.nav_teachers -> replaceFragment(TeachersFragment(), "Faculty Directory")
                 R.id.nav_subjects -> replaceFragment(SubjectsFragment(), "Subjects & Curriculum")
@@ -90,6 +95,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
     private fun replaceFragment(fragment: Fragment, title: String) {
         supportActionBar?.title = title
         supportFragmentManager.beginTransaction()
@@ -101,12 +107,14 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             authRepo.logout()
             sessionManager.clearSession()
+            RetrofitClient.authToken = null
             RetrofitClient.cookieJar.clear()
             Toast.makeText(this@MainActivity, "Signed out successfully", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this@MainActivity, LoginActivity::class.java))
             finish()
         }
     }
+
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {

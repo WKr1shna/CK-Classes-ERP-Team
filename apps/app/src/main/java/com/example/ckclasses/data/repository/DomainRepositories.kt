@@ -11,9 +11,11 @@ class StudentRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getStudents()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Student>(preferredKey = "students") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch students")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: ${res.errorBody()?.string()?.take(100) ?: "Failed to fetch students"}"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -26,7 +28,7 @@ class StudentRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Student created successfully")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to create student")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to create student")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -39,9 +41,11 @@ class TeacherRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getTeachers()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Teacher>(preferredKey = "teachers") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch teachers")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: ${res.errorBody()?.string()?.take(100) ?: "Failed to fetch teachers"}"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -54,7 +58,7 @@ class TeacherRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Teacher created successfully")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to create teacher")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to create teacher")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -67,9 +71,11 @@ class SubjectRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getSubjects()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Subject>(preferredKey = "subjects") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch subjects")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch subjects"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -82,7 +88,7 @@ class SubjectRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Subject created successfully")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to create subject")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to create subject")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -95,9 +101,11 @@ class AttendanceRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getAttendance(studentClass, date)
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<AttendanceRecord>(preferredKey = "attendance") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch attendance")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch attendance"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -110,7 +118,7 @@ class AttendanceRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(Unit, res.body()?.message ?: "Attendance submitted")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to mark attendance")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to mark attendance")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -123,9 +131,11 @@ class FeeRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getFees()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<FeeRecord>(preferredKey = "fees") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch fee records")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch fee records"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -138,7 +148,7 @@ class FeeRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(Unit, res.body()?.message ?: "Fee collection recorded")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Fee collection failed")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Fee collection failed")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -151,9 +161,11 @@ class HomeworkRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getHomework()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Homework>(preferredKey = "homework") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch homework")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch homework"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -166,7 +178,7 @@ class HomeworkRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Homework created")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to create homework")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to create homework")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -179,9 +191,11 @@ class ExamRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getExams()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Exam>(preferredKey = "exams") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch exams")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch exams"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -194,7 +208,7 @@ class ExamRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Exam created")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to create exam")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to create exam")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -207,9 +221,11 @@ class AnnouncementRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getAnnouncements()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<Announcement>(preferredKey = "announcements") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch announcements")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch announcements"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -222,7 +238,7 @@ class AnnouncementRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Announcement published")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to publish announcement")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to publish announcement")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -235,9 +251,11 @@ class ResourceRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getResources()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<DigitalResource>(preferredKey = "resources") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch resources")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch resources"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -250,7 +268,7 @@ class ResourceRepository(private val apiService: ApiService) {
             if (res.isSuccessful && res.body()?.success == true) {
                 NetworkResult.Success(res.body()?.data, res.body()?.message ?: "Resource uploaded")
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to upload resource")
+                NetworkResult.Error(res.body()?.getErrorMessage() ?: "Failed to upload resource")
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -263,9 +281,11 @@ class UserRepository(private val apiService: ApiService) {
         try {
             val res = apiService.getUsers()
             if (res.isSuccessful && res.body()?.success == true) {
-                NetworkResult.Success(res.body()?.data ?: emptyList())
+                val list = res.body()?.parseList<User>(preferredKey = "users") ?: emptyList()
+                NetworkResult.Success(list)
             } else {
-                NetworkResult.Error(res.body()?.error ?: "Failed to fetch users")
+                val err = res.body()?.getErrorMessage() ?: "HTTP ${res.code()}: Failed to fetch users"
+                NetworkResult.Error(err)
             }
         } catch (e: Exception) {
             NetworkResult.Error(e.localizedMessage ?: "Network error")

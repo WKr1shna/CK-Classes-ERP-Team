@@ -1,6 +1,7 @@
 package com.example.ckclasses.data.api
 
 import com.example.ckclasses.data.models.*
+import com.google.gson.JsonElement
 import retrofit2.Response
 import retrofit2.http.*
 
@@ -36,7 +37,7 @@ interface ApiService {
 
     // Students
     @GET("students")
-    suspend fun getStudents(): Response<ApiResponse<List<Student>>>
+    suspend fun getStudents(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("students")
     suspend fun createStudent(@Body request: CreateStudentRequest): Response<ApiResponse<Student>>
@@ -49,7 +50,7 @@ interface ApiService {
 
     // Teachers
     @GET("teachers")
-    suspend fun getTeachers(): Response<ApiResponse<List<Teacher>>>
+    suspend fun getTeachers(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("teachers")
     suspend fun createTeacher(@Body request: CreateTeacherRequest): Response<ApiResponse<Teacher>>
@@ -62,7 +63,7 @@ interface ApiService {
 
     // Subjects
     @GET("subjects")
-    suspend fun getSubjects(): Response<ApiResponse<List<Subject>>>
+    suspend fun getSubjects(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("subjects")
     suspend fun createSubject(@Body request: CreateSubjectRequest): Response<ApiResponse<Subject>>
@@ -71,48 +72,53 @@ interface ApiService {
     @GET("attendance")
     suspend fun getAttendance(
         @Query("class") studentClass: String? = null,
-        @Query("date") date: String? = null
-    ): Response<ApiResponse<List<AttendanceRecord>>>
+        @Query("date") date: String? = null,
+        @Query("limit") limit: Int = 1000
+    ): Response<ApiResponse<JsonElement>>
 
     @POST("attendance")
     suspend fun markAttendance(@Body request: MarkAttendanceRequest): Response<ApiResponse<Unit>>
 
-    // Fees
-    @GET("fees")
-    suspend fun getFees(): Response<ApiResponse<List<FeeRecord>>>
+    // Fees - endpoint in Express is student-fees
+    @GET("student-fees")
+    suspend fun getFees(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
-    @POST("fees/collect")
+    @POST("student-fees")
     suspend fun collectFee(@Body request: CollectFeeRequest): Response<ApiResponse<Unit>>
 
     // Homework
     @GET("homework")
-    suspend fun getHomework(): Response<ApiResponse<List<Homework>>>
+    suspend fun getHomework(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("homework")
     suspend fun createHomework(@Body request: CreateHomeworkRequest): Response<ApiResponse<Homework>>
 
     // Exams
     @GET("exams")
-    suspend fun getExams(): Response<ApiResponse<List<Exam>>>
+    suspend fun getExams(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("exams")
     suspend fun createExam(@Body request: CreateExamRequest): Response<ApiResponse<Exam>>
 
     // Announcements
     @GET("announcements")
-    suspend fun getAnnouncements(): Response<ApiResponse<List<Announcement>>>
+    suspend fun getAnnouncements(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("announcements")
     suspend fun createAnnouncement(@Body request: CreateAnnouncementRequest): Response<ApiResponse<Announcement>>
 
     // Digital Resources
     @GET("resources")
-    suspend fun getResources(): Response<ApiResponse<List<DigitalResource>>>
+    suspend fun getResources(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
     @POST("resources")
     suspend fun createResource(@Body request: CreateResourceRequest): Response<ApiResponse<DigitalResource>>
 
     // Users
     @GET("users")
-    suspend fun getUsers(): Response<ApiResponse<List<User>>>
+    suspend fun getUsers(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
+
+    // AI Assistant
+    @POST("ai/query")
+    suspend fun queryAi(@Body request: AiQueryRequest): Response<ApiResponse<AiQueryResponseData>>
 }
