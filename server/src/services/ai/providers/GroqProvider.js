@@ -6,13 +6,15 @@ class GroqProvider extends BaseAIProvider {
     super()
     this.apiKey = process.env.GROQ_API_KEY
     this.modelName = process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'
-    // Fallback chain models to multiply total quota limits by 16x
-    this.modelChain = [
+    // Fallback chain models (deduplicated and active supported models only)
+    this.modelChain = Array.from(new Set([
       this.modelName,
+      'llama-3.3-70b-versatile',
       'llama-3.1-8b-instant',
-      'mixtral-8x7b-32768',
+      'llama3-70b-8192',
+      'llama3-8b-8192',
       'gemma2-9b-it'
-    ]
+    ]))
   }
 
   async generateResponse(prompt, systemContext = '', options = {}) {
@@ -41,7 +43,7 @@ class GroqProvider extends BaseAIProvider {
       max_tokens: options.maxTokens || 4096
     }
 
-    // Try models sequentially on rate limit (429) errors
+    // Try models sequentially on rate limit (429) or model unavailability/decommissioned errors
     for (let i = 0; i < this.modelChain.length; i++) {
       requestBody.model = this.modelChain[i]
       
@@ -65,6 +67,19 @@ class GroqProvider extends BaseAIProvider {
 
         if (!response.ok) {
           const errorMsg = data?.error?.message || 'Failed to generate response from Groq API.'
+          // Automatically fall back if model is decommissioned, not supported, or unavailable
+          if (
+            response.status === 429 ||
+            response.status === 404 ||
+            errorMsg.toLowerCase().includes('decommissioned') ||
+            errorMsg.toLowerCase().includes('not supported') ||
+            errorMsg.toLowerCase().includes('model_decommissioned') ||
+            errorMsg.toLowerCase().includes('does not exist') ||
+            errorMsg.toLowerCase().includes('not found')
+          ) {
+            console.warn(`[Groq AI] Model ${requestBody.model} unavailable (${response.status}: ${errorMsg}). Trying next fallback...`)
+            continue
+          }
           throw new ApiError(`Groq API Error (${response.status}): ${errorMsg}`, response.status || 500, 'AI_PROVIDER_ERROR')
         }
 
@@ -76,15 +91,22 @@ class GroqProvider extends BaseAIProvider {
 
         return textResponse
       } catch (err) {
-        // If it's a rate limit retry, continue. Else throw.
-        if (err instanceof ApiError && err.statusCode === 429) {
+        // If it's a rate limit retry or decommissioned model error, continue to next fallback
+        if (
+          err instanceof ApiError &&
+          (err.statusCode === 429 ||
+           err.statusCode === 404 ||
+           err.message.toLowerCase().includes('decommissioned') ||
+           err.message.toLowerCase().includes('not supported') ||
+           err.message.toLowerCase().includes('does not exist'))
+        ) {
           continue
         }
         throw err
       }
     }
 
-    throw new ApiError('All Groq fallback models exhausted due to rate limits.', 429, 'AI_PROVIDER_RATE_LIMIT')
+    throw new ApiError('All Groq fallback models exhausted or unavailable.', 429, 'AI_PROVIDER_RATE_LIMIT')
   }
 }
 
