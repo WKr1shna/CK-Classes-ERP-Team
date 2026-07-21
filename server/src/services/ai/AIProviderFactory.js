@@ -2,6 +2,7 @@ const GeminiProvider = require('./providers/GeminiProvider')
 const OpenAIProvider = require('./providers/OpenAIProvider')
 const OllamaProvider = require('./providers/OllamaProvider')
 const GrokProvider = require('./providers/GrokProvider')
+const GroqProvider = require('./providers/GroqProvider')
 const ApiError = require('../../utils/ApiError')
 
 class AIProviderFactory {
@@ -9,6 +10,8 @@ class AIProviderFactory {
     const selectedProvider = (providerName || 'gemini').toLowerCase().trim()
 
     switch (selectedProvider) {
+      case 'groq':
+        return new GroqProvider()
       case 'grok':
       case 'xai':
         return new GrokProvider()
@@ -19,7 +22,7 @@ class AIProviderFactory {
       case 'ollama':
         return new OllamaProvider()
       default:
-        throw new ApiError(`Unsupported AI Provider: '${selectedProvider}'. Supported providers: grok, gemini, openai, ollama.`, 500, 'AI_CONFIG_ERROR')
+        throw new ApiError(`Unsupported AI Provider: '${selectedProvider}'. Supported providers: groq, grok, gemini, openai, ollama.`, 500, 'AI_CONFIG_ERROR')
     }
   }
 }

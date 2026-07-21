@@ -38,5 +38,5 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`)
 })
-// Env reloaded with AIService model preloading
+// Env reloaded with Groq Llama 3.3 provider
 

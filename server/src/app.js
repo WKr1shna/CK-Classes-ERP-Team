@@ -42,7 +42,7 @@ app.use(cors({
     if (!origin) {
       return callback(null, true)
     }
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.includes(origin) || origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:')) {
       return callback(null, true)
     }
     return callback(new Error('CORS policy: This origin is not allowed to access this API.'))
