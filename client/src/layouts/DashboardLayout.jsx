@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Sidebar } from '@/components/common/Sidebar'
 import { Navbar } from '@/components/common/Navbar'
+import { AIChatWidget } from '@/components/common/AIChatWidget'
 import { Menu, X } from 'lucide-react'
 import { cn } from '@/utils/cn'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -111,6 +112,9 @@ export const DashboardLayout = () => {
           </div>
         </motion.main>
       </div>
+
+      {/* Floating AI Assistant Chatbot Widget */}
+      <AIChatWidget />
     </div>
   )
 }
