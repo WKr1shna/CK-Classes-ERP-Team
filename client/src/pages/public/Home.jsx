@@ -51,18 +51,18 @@ const AnimatedCounter = ({ value, duration = 1.5 }) => {
 
 // Floating Golden Light Particles Component
 const FloatingParticles = () => {
-  const particles = Array.from({ length: 40 }).map((_, i) => ({
+  const particles = Array.from({ length: 45 }).map((_, i) => ({
     id: i,
     size: Math.random() * 4 + 2, // 2px to 6px
     x: Math.random() * 100, // 0% to 100%
     y: Math.random() * 100, // 0% to 100%
     duration: Math.random() * 7 + 4, // 4s to 11s
     delay: Math.random() * 5,
-    opacity: Math.random() * 0.75 + 0.25
+    opacity: Math.random() * 0.8 + 0.2
   }))
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-10">
       {particles.map((p) => (
         <motion.div
           key={p.id}
@@ -74,7 +74,7 @@ const FloatingParticles = () => {
           }}
           animate={{ 
             opacity: [0, p.opacity, 0],
-            y: [`${p.y}%`, `${(p.y - 20 + 100) % 100}%`],
+            y: [`${p.y}%`, `${(p.y - 25 + 100) % 100}%`],
             x: [`${p.x}%`, `${p.x + (Math.random() * 8 - 4)}%`],
             scale: [0.5, 1.4, 0.5]
           }}
@@ -300,6 +300,9 @@ export default function Home() {
             className="absolute inset-0 h-full w-full object-cover object-center z-0 transform-gpu will-change-transform brightness-100 contrast-105"
           />
 
+          {/* Feathered Bottom Blend Gradient (Fades video smoothly into UI background without hard border) */}
+          <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-b from-transparent via-[#030712]/70 to-[#030712] z-10 pointer-events-none" />
+
           {/* Initial Subtle Scroll Hint at Bottom (Fades out as user scrolls) */}
           <motion.div 
             style={{ opacity: initialScrollHintOpacity }}
@@ -312,22 +315,19 @@ export default function Home() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 2. GOLDEN LIGHT CINEMATIC UI (Connected directly to video light rays)       */}
+      {/* 2. SEAMLESS GOLDEN LIGHT CINEMATIC UI (Softly blended into video light)     */}
       {/* ========================================================================= */}
       <div 
         id="home"
-        className="relative z-30 min-h-screen bg-[#030712] text-white pt-16 pb-24 border-t border-amber-500/30 shadow-[0_-15px_50px_rgba(245,158,11,0.25)] overflow-hidden"
+        className="relative z-30 min-h-screen bg-[#030712] text-white pt-24 pb-24 -mt-32 overflow-hidden"
       >
         {/* Floating Golden Light Sparks & Stardust Particles */}
         <FloatingParticles />
 
-        {/* Radiant Golden Light Beams (Matching classes.mp4 video light rays) */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[650px] bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(245,158,11,0.35),transparent_100%)] z-0 pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[350px] bg-[radial-gradient(ellipse_50%_35%_at_50%_0%,rgba(251,191,36,0.4),transparent_100%)] z-0 filter blur-[40px] pointer-events-none" />
+        {/* Radiant Golden Light Beams (Flowing continuously down from classes.mp4 video) */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[700px] bg-[radial-gradient(ellipse_80%_50%_at_50%_0%,rgba(245,158,11,0.38),transparent_100%)] z-0 pointer-events-none" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-[400px] bg-[radial-gradient(ellipse_50%_35%_at_50%_0%,rgba(251,191,36,0.45),transparent_100%)] z-0 filter blur-[50px] pointer-events-none" />
         
-        {/* Top Golden Light Beam Line */}
-        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-400 to-transparent z-10 shadow-[0_0_35px_rgba(251,191,36,0.9)]" />
-
         {/* Dark Space Grid Accent */}
         <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:32px_32px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_10%,#000_70%,transparent_100%)] z-0 opacity-60 pointer-events-none" />
 
