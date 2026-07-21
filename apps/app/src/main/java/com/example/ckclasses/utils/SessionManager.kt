@@ -31,6 +31,10 @@ class SessionManager(context: Context) {
 
     fun getUserEmail(): String = prefs.getString(Constants.KEY_USER_EMAIL, "") ?: ""
 
+    fun saveAuthToken(token: String) {
+        prefs.edit().putString(Constants.KEY_AUTH_TOKEN, token).apply()
+    }
+
     fun getAuthToken(): String? = prefs.getString(Constants.KEY_AUTH_TOKEN, null)
 
     fun clearSession() {

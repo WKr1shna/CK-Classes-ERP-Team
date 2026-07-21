@@ -35,7 +35,7 @@ interface ApiService {
     @POST("auth/reset-password")
     suspend fun resetPassword(@Body request: ResetPasswordRequest): Response<ApiResponse<Unit>>
 
-    // Students - default limit=1000 to fetch all records for accurate total stats
+    // Students
     @GET("students")
     suspend fun getStudents(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
@@ -48,7 +48,7 @@ interface ApiService {
     @DELETE("students/{id}")
     suspend fun deleteStudent(@Path("id") id: String): Response<ApiResponse<Unit>>
 
-    // Teachers - default limit=1000 to fetch all records for accurate total stats
+    // Teachers
     @GET("teachers")
     suspend fun getTeachers(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
@@ -79,11 +79,11 @@ interface ApiService {
     @POST("attendance")
     suspend fun markAttendance(@Body request: MarkAttendanceRequest): Response<ApiResponse<Unit>>
 
-    // Fees
-    @GET("fees")
+    // Fees - endpoint in Express is student-fees
+    @GET("student-fees")
     suspend fun getFees(@Query("limit") limit: Int = 1000): Response<ApiResponse<JsonElement>>
 
-    @POST("fees/collect")
+    @POST("student-fees")
     suspend fun collectFee(@Body request: CollectFeeRequest): Response<ApiResponse<Unit>>
 
     // Homework

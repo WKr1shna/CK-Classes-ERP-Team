@@ -23,6 +23,7 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         sessionManager = SessionManager(this)
+        com.example.ckclasses.data.api.RetrofitClient.init(this)
 
         if (sessionManager.isLoggedIn()) {
             navigateToMain()
