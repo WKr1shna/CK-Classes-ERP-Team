@@ -149,4 +149,62 @@ api.interceptors.response.use(
   }
 )
 
+// Automatic GET Request Memory Caching with 3-minute TTL and Mutation Auto-Invalidation
+const originalGet = api.get.bind(api)
+const originalPost = api.post.bind(api)
+const originalPut = api.put.bind(api)
+const originalPatch = api.patch.bind(api)
+const originalDelete = api.delete.bind(api)
+
+const apiCache = new Map()
+const CACHE_TTL = 3 * 60 * 1000 // 3 minutes
+
+api.clearCache = () => {
+  apiCache.clear()
+}
+
+api.get = async (url, config = {}) => {
+  if (config.skipCache || url.includes('/auth/') || url.includes('/activation/')) {
+    return originalGet(url, config)
+  }
+
+  let cacheKey = url
+  if (config.params) {
+    try {
+      cacheKey += '?' + JSON.stringify(config.params)
+    } catch {}
+  }
+
+  const cached = apiCache.get(cacheKey)
+  if (cached && (Date.now() - cached.timestamp < CACHE_TTL)) {
+    return cached.data
+  }
+
+  const res = await originalGet(url, config)
+  if (res && (res.success || Array.isArray(res) || res.data)) {
+    apiCache.set(cacheKey, { timestamp: Date.now(), data: res })
+  }
+  return res
+}
+
+api.post = async (url, data, config) => {
+  if (!url.includes('/auth/')) api.clearCache()
+  return originalPost(url, data, config)
+}
+
+api.put = async (url, data, config) => {
+  if (!url.includes('/auth/')) api.clearCache()
+  return originalPut(url, data, config)
+}
+
+api.patch = async (url, data, config) => {
+  if (!url.includes('/auth/')) api.clearCache()
+  return originalPatch(url, data, config)
+}
+
+api.delete = async (url, config) => {
+  if (!url.includes('/auth/')) api.clearCache()
+  return originalDelete(url, config)
+}
+
 export default api
