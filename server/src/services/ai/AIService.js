@@ -141,7 +141,7 @@ class AIService {
       // Graceful degradation
     }
 
-    contextLines.push(`\n[Response Rules]: Answer the user's question directly based on the ERP data above. Keep your tone helpful, professional, and concise.`)
+    contextLines.push(`\n[Response Rules]: Answer the user's question directly based on the ERP data above. Keep your tone helpful, professional, and concise. Automatically detect the user's input language (English, Hindi/हिंदी, Hinglish, Marathi/मराठी, Gujarati/ગુજરાતી, etc.) and respond fluently in that exact language or script.`)
 
     return contextLines.join('\n')
   }
