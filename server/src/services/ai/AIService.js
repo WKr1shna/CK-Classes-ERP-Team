@@ -31,109 +31,38 @@ class AIService {
       `System Role: You are C.K. ERP AI Assistant, an intelligent institutional AI for C.K. Classes.`,
       `Logged-in User Identity: ${user.firstName || user.email} (${user.email}), Role: ${user.role}.`,
       `Current Date & Time: ${new Date().toISOString()}`,
-      `CRITICAL INSTRUCTION: Base your response ONLY on the provided ERP data below. Do NOT hallucinate fake dates, cities, branches, or events. If no records exist in the provided context, state that clearly.`
+      `CRITICAL INSTRUCTION: Base your response ONLY on the provided live ERP MongoDB data below. Do NOT fabricate fake dates, cities, or events. If no records exist in the provided context, state that clearly.`
     ]
 
-    // 1. Fetch Announcements relevant to role
+    // 1. Fetch Announcements from MongoDB
     try {
       if (typeof AnnouncementService.getAllAnnouncements === 'function') {
         const announcementsRes = await AnnouncementService.getAllAnnouncements({ limit: 10 }, user)
         const announcements = announcementsRes.announcements || announcementsRes.data || (Array.isArray(announcementsRes) ? announcementsRes : [])
         if (announcements.length > 0) {
-          contextLines.push('\n[Real System Announcements from ERP Database]:')
+          contextLines.push('\n[Real System Announcements from MongoDB]:')
           announcements.forEach(a => {
             const dateStr = a.publishAt ? new Date(a.publishAt).toLocaleDateString() : 'N/A'
             const audienceStr = Array.isArray(a.audience) ? a.audience.join(', ') : (a.audience || 'All')
             contextLines.push(`- Title: "${a.title}" | Audience: ${audienceStr} | Published: ${dateStr} | Details: ${a.message || a.shortDescription || ''}`)
           })
         } else {
-          contextLines.push('\n[Recent Announcements]: No published announcements currently in the ERP system.')
+          contextLines.push('\n[Announcements]: No published announcements in database.')
         }
       }
     } catch (e) {
-      // Graceful degradation on optional service context
+      // Graceful degradation
     }
 
-    // 2. Student Role Context
-    if (role === 'student' && user.linkedStudent) {
-      try {
-        const studentProfile = await StudentService.getStudentById(user.linkedStudent)
-        if (studentProfile) {
-          contextLines.push(`\n[Student Profile]:`)
-          contextLines.push(`- ID: ${studentProfile.studentId}, Name: ${studentProfile.firstName} ${studentProfile.lastName}, Class: ${studentProfile.class}, Status: ${studentProfile.status}`)
-
-          // Homework for student's class
-          if (studentProfile.class && typeof HomeworkService.getAllHomeworks === 'function') {
-            const hwRes = await HomeworkService.getAllHomeworks({ class: studentProfile.class, limit: 10 }, user)
-            const hwList = hwRes.homework || hwRes.data || (Array.isArray(hwRes) ? hwRes : [])
-            if (hwList.length > 0) {
-              contextLines.push(`\n[Assigned Homework]:`)
-              hwList.forEach(hw => {
-                const dueStr = hw.dueDate ? new Date(hw.dueDate).toLocaleDateString() : 'N/A'
-                contextLines.push(`- Title: "${hw.title}", Due: ${dueStr}, Status: ${hw.status}, Subject: ${hw.subject?.name || 'General'}`)
-              })
-            }
-          }
-
-          // Student Fees
-          if (typeof StudentFeeService.getAllStudentFees === 'function') {
-            const feeRes = await StudentFeeService.getAllStudentFees({ studentId: user.linkedStudent, limit: 10 })
-            const feeList = feeRes.fees || feeRes.studentFees || (Array.isArray(feeRes) ? feeRes : [])
-            if (feeList.length > 0) {
-              contextLines.push(`\n[Fee Overview]:`)
-              feeList.forEach(f => {
-                const dueStr = f.dueDate ? new Date(f.dueDate).toLocaleDateString() : 'N/A'
-                contextLines.push(`- Total ₹${f.totalFee}, Paid ₹${f.paidAmount}, Due: ${dueStr}, Status: ${f.status}`)
-              })
-            }
-          }
-        }
-      } catch (e) {
-        // Graceful degradation
-      }
-    }
-
-    // 3. Parent Role Context
-    if (role === 'parent' && user.linkedChildren && user.linkedChildren.length > 0) {
-      try {
-        contextLines.push(`\n[Linked Children Profiles]:`)
-        for (const childId of user.linkedChildren) {
-          const childProfile = await StudentService.getStudentById(childId)
-          if (childProfile) {
-            contextLines.push(`- Child Student: ${childProfile.firstName} ${childProfile.lastName} (${childProfile.studentId}), Class: ${childProfile.class}`)
-          }
-        }
-      } catch (e) {
-        // Graceful degradation
-      }
-    }
-
-    // 4. Teacher Role Context
-    if (role === 'teacher' && user.linkedTeacher) {
-      try {
-        const teacherProfile = await TeacherService.getTeacherById(user.linkedTeacher)
-        if (teacherProfile) {
-          contextLines.push(`\n[Teacher Profile]:`)
-          contextLines.push(`- ID: ${teacherProfile.teacherId}, Name: ${teacherProfile.firstName} ${teacherProfile.lastName}, Qualification: ${teacherProfile.qualification}`)
-          if (teacherProfile.subjects && teacherProfile.subjects.length > 0) {
-            contextLines.push(`- Subjects Taught: ${teacherProfile.subjects.join(', ')}`)
-          }
-        }
-      } catch (e) {
-        // Graceful degradation
-      }
-    }
-
-    // 5. Admin / General Exams Context
+    // 2. Fetch Enrolled Students from MongoDB (Admin / General view)
     try {
-      if (typeof ExamService.getAllExams === 'function') {
-        const examsRes = await ExamService.getAllExams({ limit: 5 })
-        const examsList = examsRes.exams || examsRes.data || (Array.isArray(examsRes) ? examsRes : [])
-        if (examsList.length > 0) {
-          contextLines.push(`\n[Scheduled Exams in ERP]:`)
-          examsList.forEach(ex => {
-            const dateStr = ex.examDate ? new Date(ex.examDate).toLocaleDateString() : 'N/A'
-            contextLines.push(`- Exam: "${ex.examName}", Class: ${ex.class}, Date: ${dateStr}, Status: ${ex.status}`)
+      if (typeof StudentService.getAllStudents === 'function') {
+        const studentsRes = await StudentService.getAllStudents({ limit: 10 })
+        const studentsList = studentsRes.students || (Array.isArray(studentsRes) ? studentsRes : [])
+        if (studentsList.length > 0) {
+          contextLines.push(`\n[Enrolled Students Records in MongoDB (Total: ${studentsRes.total || studentsList.length})]:`)
+          studentsList.forEach(s => {
+            contextLines.push(`- Student ID: ${s.studentId} | Name: ${s.firstName} ${s.lastName} | Class: ${s.class} | Status: ${s.status}`)
           })
         }
       }
@@ -141,7 +70,72 @@ class AIService {
       // Graceful degradation
     }
 
-    contextLines.push(`\n[Response Rules]: Answer the user's question directly based on the ERP data above. Keep your tone helpful, professional, and concise. Automatically detect the user's input language (English, Hindi/हिंदी, Hinglish, Marathi/मराठी, Gujarati/ગુજરાતી, etc.) and respond fluently in that exact language or script.`)
+    // 3. Student Specific Role Context
+    if (role === 'student' && user.linkedStudent) {
+      try {
+        const studentProfile = await StudentService.getStudentById(user.linkedStudent)
+        if (studentProfile) {
+          contextLines.push(`\n[Active Student Profile]:`)
+          contextLines.push(`- ID: ${studentProfile.studentId}, Name: ${studentProfile.firstName} ${studentProfile.lastName}, Class: ${studentProfile.class}, Status: ${studentProfile.status}`)
+        }
+      } catch (e) {
+        // Graceful degradation
+      }
+    }
+
+    // 4. Fetch Homework Assignments from MongoDB
+    try {
+      if (typeof HomeworkService.getAllHomeworks === 'function') {
+        const hwRes = await HomeworkService.getAllHomeworks({ limit: 10 }, user)
+        const hwList = hwRes.homework || hwRes.data || (Array.isArray(hwRes) ? hwRes : [])
+        if (hwList.length > 0) {
+          contextLines.push(`\n[Homework Assignments in MongoDB]:`)
+          hwList.forEach(hw => {
+            const dueStr = hw.dueDate ? new Date(hw.dueDate).toLocaleDateString() : 'N/A'
+            contextLines.push(`- Title: "${hw.title}" | Class: ${hw.class} | Due: ${dueStr} | Status: ${hw.status} | Details: ${hw.description || ''}`)
+          })
+        }
+      }
+    } catch (e) {
+      // Graceful degradation
+    }
+
+    // 5. Fetch Exams from MongoDB
+    try {
+      if (typeof ExamService.getAllExams === 'function') {
+        const examsRes = await ExamService.getAllExams({ limit: 10 })
+        const examsList = examsRes.exams || examsRes.data || (Array.isArray(examsRes) ? examsRes : [])
+        if (examsList.length > 0) {
+          contextLines.push(`\n[Scheduled Exams in MongoDB]:`)
+          examsList.forEach(ex => {
+            const dateStr = ex.examDate ? new Date(ex.examDate).toLocaleDateString() : 'N/A'
+            contextLines.push(`- Exam: "${ex.examName}" | Class: ${ex.class} | Date: ${dateStr} | Status: ${ex.status}`)
+          })
+        }
+      }
+    } catch (e) {
+      // Graceful degradation
+    }
+
+    // 6. Fetch Student Fee Records from MongoDB
+    try {
+      if (typeof StudentFeeService.getAllStudentFees === 'function') {
+        const feeRes = await StudentFeeService.getAllStudentFees({ limit: 10 })
+        const feeList = feeRes.fees || feeRes.studentFees || (Array.isArray(feeRes) ? feeRes : [])
+        if (feeList.length > 0) {
+          contextLines.push(`\n[Student Fee Summaries in MongoDB]:`)
+          feeList.forEach(f => {
+            const studentName = f.student ? `${f.student.firstName || ''} ${f.student.lastName || ''}`.trim() : 'Student'
+            const dueStr = f.dueDate ? new Date(f.dueDate).toLocaleDateString() : 'N/A'
+            contextLines.push(`- Student: ${studentName} | Total Fee: ₹${f.totalFee} | Paid: ₹${f.paidAmount} | Due: ${dueStr} | Status: ${f.status}`)
+          })
+        }
+      }
+    } catch (e) {
+      // Graceful degradation
+    }
+
+    contextLines.push(`\n[Response Rules]: Answer the user's question directly based on the ERP MongoDB data above. Keep your tone helpful, professional, and concise. Automatically detect the user's input language (English, Hindi/हिंदी, Hinglish, Marathi/मराठी, Gujarati/ગુજરાતી, etc.) and respond fluently in that exact language or script.`)
 
     return contextLines.join('\n')
   }
@@ -170,7 +164,7 @@ class AIService {
       success: true,
       query: prompt.trim(),
       response: responseText,
-      provider: process.env.AI_PROVIDER || 'gemini',
+      provider: process.env.AI_PROVIDER || 'groq',
       timestamp: new Date()
     }
   }
