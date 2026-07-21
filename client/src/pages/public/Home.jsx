@@ -100,28 +100,31 @@ export default function Home() {
     }
   }, [])
 
-  // Silky-smooth 60fps/120fps continuous lerp loop for video frame scrubbing
+  // Silky-smooth frame-accurate scrubbing with seeked event listener guard (prevents middle video freezes)
   useEffect(() => {
     const video = videoRef.current
     if (!video || !videoDuration) return
 
-    video.pause() // Pause video so native playback motor doesn't conflict with scrubbing
+    video.pause() // Pause video so native playback motor doesn't conflict with manual scrubbing
 
     let animationFrameId
+    let isSeeking = false
+
+    const handleSeeked = () => {
+      isSeeking = false
+    }
+
+    video.addEventListener('seeked', handleSeeked)
 
     const updateFrame = () => {
-      const latest = smoothProgress.get()
-      if (videoDuration && isFinite(latest)) {
+      if (!isSeeking && videoDuration) {
+        const latest = scrollYProgress.get()
         const targetTime = Math.min(videoDuration - 0.05, Math.max(0, latest * videoDuration))
         const diff = targetTime - video.currentTime
 
-        // Linear interpolation (lerp) for liquid smooth scrubbing without keyframe stutter
-        if (Math.abs(diff) > 0.001) {
-          if ('fastSeek' in video && Math.abs(diff) > 0.3) {
-            video.fastSeek(targetTime)
-          } else {
-            video.currentTime += diff * 0.18
-          }
+        if (Math.abs(diff) > 0.01) {
+          isSeeking = true
+          video.currentTime = video.currentTime + diff * 0.35
         }
       }
       animationFrameId = requestAnimationFrame(updateFrame)
@@ -130,9 +133,10 @@ export default function Home() {
     animationFrameId = requestAnimationFrame(updateFrame)
 
     return () => {
+      video.removeEventListener('seeked', handleSeeked)
       if (animationFrameId) cancelAnimationFrame(animationFrameId)
     }
-  }, [smoothProgress, videoDuration])
+  }, [scrollYProgress, videoDuration])
 
   // Track window scroll for sticky navbar styling after transition
   useEffect(() => {
