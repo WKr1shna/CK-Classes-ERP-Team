@@ -134,6 +134,9 @@ export const AIQuizGeneratorModal = ({ isOpen, onClose, initialResource = null }
                   <option value={3}>3 Questions (Quick Quiz)</option>
                   <option value={5}>5 Questions (Unit Test)</option>
                   <option value={10}>10 Questions (Full Test Paper)</option>
+                  <option value={15}>15 Questions (Standard Exam)</option>
+                  <option value={20}>20 Questions (Grand Mock Exam)</option>
+                  <option value={30}>30 Questions (Full Term Exam)</option>
                 </select>
               </div>
 
