@@ -2,38 +2,49 @@ package com.example.ckclasses.ui.teachers
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.ckclasses.data.models.Teacher
 import com.example.ckclasses.databinding.ItemTeacherBinding
 
 class TeacherAdapter(
-    private var teachers: List<Teacher> = emptyList()
-) : RecyclerView.Adapter<TeacherAdapter.ViewHolder>() {
+    private val onEditClick: ((Teacher) -> Unit)? = null
+) : ListAdapter<Teacher, TeacherAdapter.TeacherViewHolder>(TeacherDiffCallback()) {
 
-    fun submitList(newList: List<Teacher>) {
-        teachers = newList
-        notifyDataSetChanged()
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TeacherViewHolder {
         val binding = ItemTeacherBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding)
+        return TeacherViewHolder(binding, onEditClick)
     }
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        holder.bind(teachers[position])
+    override fun onBindViewHolder(holder: TeacherViewHolder, position: Int) {
+        holder.bind(getItem(position))
     }
 
-    override fun getItemCount(): Int = teachers.size
+    class TeacherViewHolder(
+        private val binding: ItemTeacherBinding,
+        private val onEditClick: ((Teacher) -> Unit)?
+    ) : RecyclerView.ViewHolder(binding.root) {
 
-    class ViewHolder(private val binding: ItemTeacherBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(item: Teacher) {
-            val displayName = item.user?.name ?: item.name ?: "Teacher"
-            val displayEmail = item.user?.email ?: item.email ?: ""
-            binding.tvTeacherName.text = displayName
-            binding.tvTeacherIdBadge.text = item.teacherId.ifEmpty { "TCH" }
-            binding.tvDeptQual.text = "Dept: ${item.department} • ${item.qualification}"
-            binding.tvTeacherContact.text = "Email: $displayEmail"
+        fun bind(teacher: Teacher) {
+            binding.tvTeacherId.text = if (teacher.teacherId.isNotEmpty()) teacher.teacherId else teacher.id.takeLast(8).uppercase()
+            binding.tvTeacherName.text = teacher.fullName
+            binding.tvTeacherEmail.text = teacher.email ?: "No email provided"
+            binding.tvTeacherSubject.text = if (teacher.subjectsHandled.isNotEmpty()) teacher.subjectsHandled.joinToString(", ") else if (teacher.department.isNotEmpty()) teacher.department else "General Educator"
+            binding.tvTeacherPhone.text = if (!teacher.phone.isNullOrEmpty()) "📞 ${teacher.phone}" else "📞 N/A"
+            binding.tvTeacherStatus.text = teacher.status
+
+            val initial = if (teacher.fullName.isNotEmpty()) teacher.fullName[0].toString().uppercase() else "T"
+            binding.tvTeacherAvatar.text = initial
+
+            binding.btnEditTeacher.setOnClickListener {
+                onEditClick?.invoke(teacher)
+            }
         }
+    }
+
+    class TeacherDiffCallback : DiffUtil.ItemCallback<Teacher>() {
+        override fun areItemsTheSame(oldItem: Teacher, newItem: Teacher): Boolean = oldItem.id == newItem.id
+        override fun areContentsTheSame(oldItem: Teacher, newItem: Teacher): Boolean = oldItem == newItem
     }
 }
