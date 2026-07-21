@@ -106,7 +106,7 @@ api.interceptors.response.use(
           }
         } catch {}
 
-        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth')) {
+        if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/auth') && !originalRequest?.url?.includes('/auth/me')) {
           window.location.href = '/auth/login?session_expired=true'
         }
 
