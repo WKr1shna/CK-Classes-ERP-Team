@@ -11,14 +11,20 @@ async function seedAdmin() {
     console.log('Connected to MongoDB Atlas dbName: ck_classes')
 
     const adminEmail = 'admin@ckclasses.com'
-    let user = await User.findOne({ email: adminEmail })
+    const adminPassword = 'admin123'
 
     const salt = await bcrypt.genSalt(10)
-    const passwordHash = await bcrypt.hash('Admin123!', salt)
+    const passwordHash = await bcrypt.hash(adminPassword, salt)
+
+    let user = await User.findOne({ email: adminEmail })
 
     if (user) {
-      await User.updateOne({ _id: user._id }, { $set: { passwordHash, isActive: true } })
-      console.log('Updated existing Admin user in ck_classes: admin@ckclasses.com / Admin123!')
+      // Use updateOne without $set wrapper for direct field update
+      await User.updateOne(
+        { _id: user._id },
+        { passwordHash: passwordHash, isActive: true }
+      )
+      console.log(`Updated existing Admin user in ck_classes: ${adminEmail} / ${adminPassword}`)
     } else {
       user = await User.create({
         email: adminEmail,
@@ -29,8 +35,13 @@ async function seedAdmin() {
         phone: '9876543210',
         isActive: true
       })
-      console.log('Created new Admin user in ck_classes: admin@ckclasses.com / Admin123!')
+      console.log(`Created new Admin user in ck_classes: ${adminEmail} / ${adminPassword}`)
     }
+
+    // Verify
+    const verify = await User.findOne({ email: adminEmail })
+    const match = await bcrypt.compare(adminPassword, verify.passwordHash)
+    console.log(`Password verification: ${match ? 'PASS ✓' : 'FAIL ✗'}`)
 
     await mongoose.disconnect()
     console.log('Database seeding complete for ck_classes.')
