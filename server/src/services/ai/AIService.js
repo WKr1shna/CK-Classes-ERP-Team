@@ -242,10 +242,14 @@ ${resourceDetails || `Topic: ${topic}\nClass: ${className}`}
     const rawResponse = await provider.generateResponse(userPrompt, systemPrompt)
 
     try {
-      // Strip markdown code fences if present
-      const cleanJson = rawResponse.replace(/```json/gi, '').replace(/```/g, '').trim()
-      const parsedQuiz = JSON.parse(cleanJson)
-      return parsedQuiz
+      const firstBrace = rawResponse.indexOf('{')
+      const lastBrace = rawResponse.lastIndexOf('}')
+      if (firstBrace !== -1 && lastBrace > firstBrace) {
+        const cleanJson = rawResponse.substring(firstBrace, lastBrace + 1)
+        const parsedQuiz = JSON.parse(cleanJson)
+        return parsedQuiz
+      }
+      throw new Error('No valid JSON object found in response')
     } catch (e) {
       return {
         title: `${resourceTitle} Test Paper`,

@@ -28,7 +28,22 @@ export const AIQuizGeneratorModal = ({ isOpen, onClose, initialResource = null }
         count,
         difficulty
       })
-      setQuizData(result)
+
+      let parsed = result?.data || result
+      if ((!parsed?.questions || parsed.questions.length === 0) && parsed?.rawText) {
+        try {
+          const firstBrace = parsed.rawText.indexOf('{')
+          const lastBrace = parsed.rawText.lastIndexOf('}')
+          if (firstBrace !== -1 && lastBrace > firstBrace) {
+            const extracted = JSON.parse(parsed.rawText.substring(firstBrace, lastBrace + 1))
+            if (extracted?.questions) {
+              parsed = extracted
+            }
+          }
+        } catch (e) {}
+      }
+
+      setQuizData(parsed)
       setActiveTab('paper')
     } catch (err) {
       alert(`Failed to generate quiz: ${err.message || 'Error connecting to AI service'}`)
