@@ -35,9 +35,9 @@ io.on('connection', (socket) => {
   })
 })
 
-// Bind server port
-server.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`)
+// Bind server port across all network interfaces (0.0.0.0)
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${PORT} (Accessible on local Wi-Fi IP)`)
 })
-// Env reloaded with Groq Llama 3.3 provider
+
 

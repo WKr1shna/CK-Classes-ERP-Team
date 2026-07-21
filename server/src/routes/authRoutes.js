@@ -189,6 +189,7 @@ router.post('/login', async (req, res, next) => {
     user.lastLogin = now
     await User.updateOne({ _id: user._id }, { $set: { sessions: user.sessions, lastLogin: now } })
 
+
     setCookies(res, accessToken, refreshToken)
 
     res.status(200).json({
