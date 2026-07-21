@@ -33,6 +33,13 @@ api.interceptors.request.use(
         config.headers.Authorization = `Bearer ${token}`
       }
     } catch {}
+
+    // Ensure FormData requests automatically generate boundary headers
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+      delete config.headers['content-type']
+    }
+
     return config
   },
   (error) => {

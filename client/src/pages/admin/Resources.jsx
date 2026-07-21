@@ -517,16 +517,19 @@ export default function Resources() {
       formData.append('tags', JSON.stringify(tagsArray))
 
       if (selectedFile) {
+        if (selectedFile.size > 4 * 1024 * 1024) {
+          showToast('error', 'File size exceeds maximum supported upload limit of 4MB. Please compress the file or provide an external link.')
+          setSubmitting(false)
+          return
+        }
         formData.append('file', selectedFile)
       }
 
-      const config = { headers: { 'Content-Type': 'multipart/form-data' } }
-
       let res
       if (currentResource) {
-        res = await api.put(`/resources/${currentResource._id}`, formData, config)
+        res = await api.put(`/resources/${currentResource._id}`, formData)
       } else {
-        res = await api.post('/resources', formData, config)
+        res = await api.post('/resources', formData)
       }
 
       if (res && res.success) {
@@ -539,12 +542,14 @@ export default function Resources() {
       }
     } catch (err) {
       const data = err.response?.data
-      if (data?.errors) {
+      if (data?.code === 'FILE_TOO_LARGE') {
+        showToast('error', 'File exceeds maximum supported upload limit of 4MB.')
+      } else if (data?.errors) {
         setValidationErrors(data.errors)
         const firstErr = Object.values(data.errors)[0]
         showToast('error', firstErr || 'Validation checks failed.')
       } else {
-        showToast('error', err.response?.data?.message || 'Communication error on backend.')
+        showToast('error', err.response?.data?.message || err.message || 'Resource upload failed.')
       }
     } finally {
       setSubmitting(false)
