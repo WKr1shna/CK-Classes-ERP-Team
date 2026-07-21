@@ -1,38 +1,85 @@
 package com.example.ckclasses.data.repository
 
+import android.util.Log
 import com.example.ckclasses.data.api.ApiService
+import com.example.ckclasses.data.api.RetrofitClient
 import com.example.ckclasses.data.models.*
 import com.example.ckclasses.utils.NetworkResult
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 class AuthRepository(private val apiService: ApiService) {
 
-    suspend fun login(request: LoginRequest): NetworkResult<LoginResponseData> =
+    private val TAG = "AuthRepository"
+
+    suspend fun login(request: LoginRequest): NetworkResult<User> =
         withContext(Dispatchers.IO) {
             try {
+                Log.d(TAG, "Attempting login for: ${request.email}")
                 val response = apiService.login(request)
-                if (response.isSuccessful && response.body()?.success == true) {
-                    NetworkResult.Success(response.body()?.data, response.body()?.message)
+                Log.d(TAG, "Login response code: ${response.code()}, isSuccessful: ${response.isSuccessful}")
+
+                if (response.isSuccessful) {
+                    val body = response.body()
+                    Log.d(TAG, "Login body success=${body?.success}, user=${body?.user?.email}, accessToken=${body?.accessToken?.take(20)}")
+
+                    if (body?.success == true) {
+                        val user = body.user ?: body.data?.user
+                        val token = body.accessToken ?: body.token
+                        if (!token.isNullOrEmpty()) {
+                            RetrofitClient.authToken = token
+                            Log.d(TAG, "Auth token set: ${token.take(20)}...")
+                        } else {
+                            Log.w(TAG, "No access token in login response!")
+                        }
+                        if (user != null) {
+                            NetworkResult.Success(user, body.message)
+                        } else {
+                            Log.e(TAG, "Login response missing user data")
+                            NetworkResult.Error("Login response missing user data")
+                        }
+                    } else {
+                        val errMsg = body?.getErrorMessage() ?: "Login failed"
+                        Log.e(TAG, "Login body success=false: $errMsg")
+                        NetworkResult.Error(errMsg)
+                    }
                 } else {
-                    val errorMsg = response.body()?.error
-                        ?: response.body()?.message
-                        ?: "Login failed (${response.code()})"
-                    NetworkResult.Error(errorMsg)
+                    // HTTP error (401, 500, etc.) - parse error body
+                    val errorBody = response.errorBody()?.string()
+                    Log.e(TAG, "Login HTTP error ${response.code()}: $errorBody")
+                    val errMsg = try {
+                        val errResponse = Gson().fromJson(errorBody, ApiResponse::class.java)
+                        errResponse?.getErrorMessage() ?: "Login failed (${response.code()})"
+                    } catch (e: Exception) {
+                        "Login failed (${response.code()})"
+                    }
+                    NetworkResult.Error(errMsg)
                 }
             } catch (e: Exception) {
+                Log.e(TAG, "Login exception: ${e.message}", e)
                 NetworkResult.Error(e.localizedMessage ?: "Network connection error")
             }
         }
 
-    suspend fun getCurrentUser(): NetworkResult<LoginResponseData> =
+    suspend fun getCurrentUser(): NetworkResult<User> =
         withContext(Dispatchers.IO) {
             try {
                 val response = apiService.getCurrentUser()
                 if (response.isSuccessful && response.body()?.success == true) {
-                    NetworkResult.Success(response.body()?.data)
+                    val body = response.body()
+                    val user = body?.user ?: body?.data?.user
+                    val token = body?.accessToken ?: body?.token
+                    if (!token.isNullOrEmpty()) {
+                        RetrofitClient.authToken = token
+                    }
+                    if (user != null) {
+                        NetworkResult.Success(user)
+                    } else {
+                        NetworkResult.Error("User session missing")
+                    }
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Session expired")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Session expired")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Failed to verify session")
@@ -43,12 +90,14 @@ class AuthRepository(private val apiService: ApiService) {
         withContext(Dispatchers.IO) {
             try {
                 val response = apiService.logout()
+                RetrofitClient.authToken = null
                 if (response.isSuccessful) {
                     NetworkResult.Success(Unit, "Logged out successfully")
                 } else {
                     NetworkResult.Error("Logout failed")
                 }
             } catch (e: Exception) {
+                RetrofitClient.authToken = null
                 NetworkResult.Error(e.localizedMessage ?: "Logout error")
             }
         }
@@ -60,7 +109,7 @@ class AuthRepository(private val apiService: ApiService) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     NetworkResult.Success(response.body()?.data, response.body()?.message)
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Activation request failed")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Activation request failed")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Activation error")
@@ -74,7 +123,7 @@ class AuthRepository(private val apiService: ApiService) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     NetworkResult.Success(Unit, response.body()?.message ?: "Account activated successfully")
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Verification failed")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Verification failed")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Activation verification error")
@@ -88,7 +137,7 @@ class AuthRepository(private val apiService: ApiService) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     NetworkResult.Success(Unit, response.body()?.message ?: "OTP sent to email")
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Failed to send reset OTP")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Failed to send reset OTP")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -103,7 +152,7 @@ class AuthRepository(private val apiService: ApiService) {
                     val token = response.body()?.resetToken ?: ""
                     NetworkResult.Success(token, "OTP verified")
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Invalid OTP")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Invalid OTP")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Network error")
@@ -117,7 +166,7 @@ class AuthRepository(private val apiService: ApiService) {
                 if (response.isSuccessful && response.body()?.success == true) {
                     NetworkResult.Success(Unit, response.body()?.message ?: "Password reset successful")
                 } else {
-                    NetworkResult.Error(response.body()?.error ?: "Password reset failed")
+                    NetworkResult.Error(response.body()?.getErrorMessage() ?: "Password reset failed")
                 }
             } catch (e: Exception) {
                 NetworkResult.Error(e.localizedMessage ?: "Network error")

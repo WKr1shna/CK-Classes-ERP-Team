@@ -2,10 +2,20 @@ package com.example.ckclasses.data.models
 
 import com.google.gson.annotations.SerializedName
 
+data class DashboardStats(
+    val totalStudents: Int = 0,
+    val totalTeachers: Int = 0,
+    val totalSubjects: Int = 0,
+    val todayAttendancePercentage: Double = 0.0,
+    val pendingFeesTotal: Double = 0.0
+)
+
 // Student Model
 data class Student(
     @SerializedName("_id") val id: String = "",
     @SerializedName("studentId") val studentId: String = "",
+    @SerializedName("firstName") val firstName: String? = null,
+    @SerializedName("lastName") val lastName: String? = null,
     @SerializedName("user") val user: User? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("email") val email: String? = null,
@@ -16,7 +26,14 @@ data class Student(
     @SerializedName("guardianName") val guardianName: String = "",
     @SerializedName("guardianPhone") val guardianPhone: String = "",
     @SerializedName("status") val status: String = "Active"
-)
+) {
+    val fullName: String
+        get() {
+            if (!name.isNullOrEmpty()) return name
+            val combined = listOfNotNull(firstName, lastName).joinToString(" ").trim()
+            return if (combined.isNotEmpty()) combined else "Student"
+        }
+}
 
 data class CreateStudentRequest(
     @SerializedName("name") val name: String,
@@ -33,14 +50,24 @@ data class CreateStudentRequest(
 data class Teacher(
     @SerializedName("_id") val id: String = "",
     @SerializedName("teacherId") val teacherId: String = "",
+    @SerializedName("firstName") val firstName: String? = null,
+    @SerializedName("lastName") val lastName: String? = null,
     @SerializedName("user") val user: User? = null,
     @SerializedName("name") val name: String? = null,
     @SerializedName("email") val email: String? = null,
     @SerializedName("phone") val phone: String? = null,
     @SerializedName("department") val department: String = "",
     @SerializedName("qualification") val qualification: String = "",
+    @SerializedName("subjectsHandled") val subjectsHandled: List<String> = emptyList(),
     @SerializedName("status") val status: String = "Active"
-)
+) {
+    val fullName: String
+        get() {
+            if (!name.isNullOrEmpty()) return name
+            val combined = listOfNotNull(firstName, lastName).joinToString(" ").trim()
+            return if (combined.isNotEmpty()) combined else "Faculty Member"
+        }
+}
 
 data class CreateTeacherRequest(
     @SerializedName("name") val name: String,
@@ -70,38 +97,40 @@ data class CreateSubjectRequest(
 data class AttendanceRecord(
     @SerializedName("_id") val id: String = "",
     @SerializedName("student") val student: Student? = null,
-    @SerializedName("status") val status: String = "Present", // Present, Absent, Late, Excused
+    @SerializedName("class") val studentClass: String = "",
     @SerializedName("date") val date: String = "",
+    @SerializedName("status") val status: String = "Present",
     @SerializedName("remarks") val remarks: String? = null
 )
 
 data class MarkAttendanceRequest(
+    @SerializedName("studentId") val studentId: String,
     @SerializedName("class") val studentClass: String,
     @SerializedName("date") val date: String,
-    @SerializedName("records") val records: List<AttendanceItem>
-)
-
-data class AttendanceItem(
-    @SerializedName("studentId") val studentId: String,
-    @SerializedName("status") val status: String,
-    @SerializedName("remarks") val remarks: String? = null
+    @SerializedName("status") val status: String
 )
 
 // Fee Model
 data class FeeRecord(
     @SerializedName("_id") val id: String = "",
+    @SerializedName("title") val rawTitle: String? = null,
     @SerializedName("student") val student: Student? = null,
-    @SerializedName("title") val title: String = "",
-    @SerializedName("totalAmount") val totalAmount: Double = 0.0,
+    @SerializedName("amount") val amount: Double = 0.0,
     @SerializedName("paidAmount") val paidAmount: Double = 0.0,
     @SerializedName("dueDate") val dueDate: String = "",
-    @SerializedName("status") val status: String = "Pending" // Paid, Partial, Pending, Overdue
-)
+    @SerializedName("status") val status: String = "Pending"
+) {
+    val totalAmount: Double
+        get() = amount
+
+    val title: String
+        get() = rawTitle ?: student?.fullName ?: "Student Fee Record"
+}
 
 data class CollectFeeRequest(
-    @SerializedName("studentId") val studentId: String,
+    @SerializedName("feeId") val feeId: String,
     @SerializedName("amount") val amount: Double,
-    @SerializedName("paymentMode") val paymentMode: String = "Cash"
+    @SerializedName("paymentMode") val paymentMode: String
 )
 
 // Homework Model
@@ -109,16 +138,19 @@ data class Homework(
     @SerializedName("_id") val id: String = "",
     @SerializedName("title") val title: String = "",
     @SerializedName("description") val description: String = "",
-    @SerializedName("class") val targetClass: String = "",
+    @SerializedName("class") val studentClass: String = "",
     @SerializedName("subject") val subject: Subject? = null,
     @SerializedName("dueDate") val dueDate: String = "",
-    @SerializedName("createdAt") val createdAt: String = ""
-)
+    @SerializedName("teacher") val teacher: Teacher? = null
+) {
+    val targetClass: String
+        get() = studentClass
+}
 
 data class CreateHomeworkRequest(
     @SerializedName("title") val title: String,
     @SerializedName("description") val description: String,
-    @SerializedName("class") val targetClass: String,
+    @SerializedName("class") val studentClass: String,
     @SerializedName("subjectId") val subjectId: String,
     @SerializedName("dueDate") val dueDate: String
 )
@@ -126,16 +158,22 @@ data class CreateHomeworkRequest(
 // Exam Model
 data class Exam(
     @SerializedName("_id") val id: String = "",
-    @SerializedName("title") val title: String = "",
-    @SerializedName("class") val targetClass: String = "",
+    @SerializedName("name") val name: String = "",
+    @SerializedName("class") val studentClass: String = "",
     @SerializedName("subject") val subject: Subject? = null,
     @SerializedName("maxMarks") val maxMarks: Int = 100,
     @SerializedName("examDate") val examDate: String = ""
-)
+) {
+    val title: String
+        get() = name
+
+    val targetClass: String
+        get() = studentClass
+}
 
 data class CreateExamRequest(
-    @SerializedName("title") val title: String,
-    @SerializedName("class") val targetClass: String,
+    @SerializedName("name") val name: String,
+    @SerializedName("class") val studentClass: String,
     @SerializedName("subjectId") val subjectId: String,
     @SerializedName("maxMarks") val maxMarks: Int,
     @SerializedName("examDate") val examDate: String
@@ -146,14 +184,14 @@ data class Announcement(
     @SerializedName("_id") val id: String = "",
     @SerializedName("title") val title: String = "",
     @SerializedName("content") val content: String = "",
-    @SerializedName("targetAudience") val targetAudience: String = "All",
+    @SerializedName("targetAudience") val targetAudience: String = "all",
     @SerializedName("createdAt") val createdAt: String = ""
 )
 
 data class CreateAnnouncementRequest(
     @SerializedName("title") val title: String,
     @SerializedName("content") val content: String,
-    @SerializedName("targetAudience") val targetAudience: String = "All"
+    @SerializedName("targetAudience") val targetAudience: String = "all"
 )
 
 // Digital Resource Model
@@ -162,22 +200,18 @@ data class DigitalResource(
     @SerializedName("title") val title: String = "",
     @SerializedName("description") val description: String = "",
     @SerializedName("fileUrl") val fileUrl: String = "",
-    @SerializedName("category") val category: String = "General",
-    @SerializedName("uploadedAt") val uploadedAt: String = ""
-)
+    @SerializedName("fileType") val fileType: String = "",
+    @SerializedName("class") val studentClass: String = "",
+    @SerializedName("subject") val subject: Subject? = null
+) {
+    val category: String
+        get() = fileType
+}
 
 data class CreateResourceRequest(
     @SerializedName("title") val title: String,
     @SerializedName("description") val description: String,
     @SerializedName("fileUrl") val fileUrl: String,
-    @SerializedName("category") val category: String = "General"
-)
-
-// Dashboard Stats Model
-data class DashboardStats(
-    @SerializedName("totalStudents") val totalStudents: Int = 0,
-    @SerializedName("totalTeachers") val totalTeachers: Int = 0,
-    @SerializedName("totalSubjects") val totalSubjects: Int = 0,
-    @SerializedName("todayAttendancePercentage") val todayAttendancePercentage: Double = 0.0,
-    @SerializedName("pendingFeesTotal") val pendingFeesTotal: Double = 0.0
+    @SerializedName("fileType") val fileType: String,
+    @SerializedName("class") val studentClass: String
 )
