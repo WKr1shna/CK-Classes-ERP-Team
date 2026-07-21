@@ -18,6 +18,7 @@ const announcementRoutes = require('./routes/announcementRoutes')
 const resourceRoutes = require('./routes/resourceRoutes')
 const userRoutes = require('./routes/userRoutes')
 const activationRoutes = require('./routes/activationRoutes')
+const aiRoutes = require('./routes/aiRoutes')
 
 const app = express()
 
@@ -72,6 +73,7 @@ app.use('/api/v1/announcements', announcementRoutes)
 app.use('/api/v1/resources', resourceRoutes)
 app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/activation', activationRoutes)
+app.use('/api/v1/ai', aiRoutes)
 
 // Universal fallback
 app.use((req, res, next) => {
