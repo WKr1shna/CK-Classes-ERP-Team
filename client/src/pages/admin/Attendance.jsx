@@ -41,6 +41,8 @@ import AttendanceProgress from '@/components/attendance/AttendanceProgress'
 import BulkActionBar from '@/components/attendance/BulkActionBar'
 import StudentRiskMonitor from '@/components/attendance/StudentRiskMonitor'
 import TeacherPerformanceDashboard from '@/components/attendance/TeacherPerformanceDashboard'
+import NotificationCenterDrawer from '@/components/notifications/NotificationCenterDrawer'
+import LiveActivityFeed from '@/components/attendance/LiveActivityFeed'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 
@@ -235,10 +237,54 @@ export default function Attendance() {
   const [isLectureSelectOpen, setIsLectureSelectOpen] = useState(false)
   const [isMarkModalOpen, setIsMarkModalOpen] = useState(false)
   const [isViewModalOpen, setIsViewModalOpen] = useState(false)
-  const [selectedSessionForView, setSelectedSessionForView] = useState(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [toast, setToast] = useState(null)
-  const [isHeaderOverflowOpen, setIsHeaderOverflowOpen] = useState(false)
+  // Notification System State
+  const [isNotificationCenterOpen, setIsNotificationCenterOpen] = useState(false)
+  const [notifications, setNotifications] = useState([
+    {
+      id: 'notif-1',
+      title: 'Attendance Submitted for Class 8A',
+      description: 'Rajiv Sen recorded attendance for English lecture (28 Present, 2 Absent)',
+      timestamp: '10 mins ago',
+      group: 'Today',
+      priority: 'Success',
+      category: 'Submission',
+      isRead: false,
+      targetClass: 'Class 8A',
+      actionLabel: 'View Report'
+    },
+    {
+      id: 'notif-2',
+      title: 'Student Risk Alert: Critical Threshold',
+      description: '3 students in Class 9B dropped below 60% attendance rate',
+      timestamp: '35 mins ago',
+      group: 'Today',
+      priority: 'Critical',
+      category: 'Risk',
+      isRead: false,
+      targetClass: 'Class 9B',
+      actionLabel: 'View Risk Monitor'
+    },
+    {
+      id: 'notif-3',
+      title: 'Session Locked: Physics Period 2',
+      description: 'Attendance records finalized and locked by Administrator',
+      timestamp: '1 hour ago',
+      group: 'Today',
+      priority: 'Warning',
+      category: 'Lock',
+      isRead: true,
+      targetClass: 'Class 10',
+      actionLabel: 'View Session'
+    }
+  ])
+
+  const handleMarkNotifRead = (id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n))
+  }
+
+  const handleMarkAllNotifsRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })))
+  }
 
   // Collapsible KPI Panel State with Session Storage Persistence
   const [isKpiExpanded, setIsKpiExpanded] = useState(() => {
@@ -813,6 +859,20 @@ export default function Attendance() {
             onChange={handleWorkspaceViewChange}
           />
 
+          {/* Notification Bell Icon & Counter */}
+          <button
+            onClick={() => setIsNotificationCenterOpen(true)}
+            className="relative h-8 w-8 rounded-full border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs shrink-0"
+            title="Notification Center"
+          >
+            <Bell className="h-4 w-4 text-brand-blue-600" />
+            {notifications.filter(n => !n.isRead).length > 0 && (
+              <span className="absolute -top-1 -right-1 h-4 min-w-[16px] px-1 bg-rose-600 text-white text-[9px] font-black rounded-full flex items-center justify-center animate-pulse">
+                {notifications.filter(n => !n.isRead).length}
+              </span>
+            )}
+          </button>
+
           {/* Primary CTA: Take Attendance */}
           <button
             onClick={handleOpenLectureSelect}
@@ -1062,6 +1122,13 @@ export default function Attendance() {
         onSendReminder={(teacher) => {
           showToast('success', `Sent attendance reminder to ${teacher.name}`)
         }}
+      />
+
+      {/* 2.8 Real-Time Live Activity Event Stream */}
+      <LiveActivityFeed
+        sessions={filteredSessions}
+        loading={loading}
+        onOpenSession={(session) => handleOpenViewModal(session)}
       />
 
       {/* 3. STICKY WORKSPACE TOOLBAR (Stays visible while scrolling, with Dynamic Selection Mode) */}
@@ -2003,6 +2070,24 @@ export default function Attendance() {
             onBulkArchive={handleBulkArchive}
             onBulkDelete={handleBulkDelete}
             processing={loading}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* NOTIFICATION CENTER SLIDE-OVER DRAWER */}
+      <AnimatePresence>
+        {isNotificationCenterOpen && (
+          <NotificationCenterDrawer
+            isOpen={isNotificationCenterOpen}
+            onClose={() => setIsNotificationCenterOpen(false)}
+            notifications={notifications}
+            onMarkAsRead={handleMarkNotifRead}
+            onMarkAllAsRead={handleMarkAllNotifsRead}
+            onClearNotification={(id) => setNotifications(prev => prev.filter(n => n.id !== id))}
+            onActionClick={(notif) => {
+              setIsNotificationCenterOpen(false)
+              showToast('info', `Opening details for ${notif.title}`)
+            }}
           />
         )}
       </AnimatePresence>
