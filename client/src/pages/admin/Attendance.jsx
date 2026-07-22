@@ -39,6 +39,7 @@ import AttendanceDrawer from '@/components/attendance/AttendanceDrawer'
 import LiveSessionDashboard from '@/components/attendance/LiveSessionDashboard'
 import AttendanceProgress from '@/components/attendance/AttendanceProgress'
 import BulkActionBar from '@/components/attendance/BulkActionBar'
+import StudentRiskMonitor from '@/components/attendance/StudentRiskMonitor'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 
@@ -1038,6 +1039,18 @@ export default function Attendance() {
         onOpenViewModal={handleOpenViewModal}
         onSelectSlot={handleSelectSlot}
         onTriggerEdit={handleTriggerEdit}
+      />
+
+      {/* 2.6 Proactive Student Risk Monitor & Early Intervention Panel */}
+      <StudentRiskMonitor
+        sessions={filteredSessions}
+        loading={loading}
+        onOpenHistory={(student) => {
+          showToast('info', `Opening attendance history for ${student.name}`)
+        }}
+        onOpenProfile={(student) => {
+          navigate(`/admin/students?search=${encodeURIComponent(student.name)}`)
+        }}
       />
 
       {/* 3. STICKY WORKSPACE TOOLBAR (Stays visible while scrolling, with Dynamic Selection Mode) */}
