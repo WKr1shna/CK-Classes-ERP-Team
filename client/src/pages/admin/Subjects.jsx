@@ -375,7 +375,7 @@ export default function Subjects() {
       doc.setTextColor(255, 255, 255)
       doc.setFontSize(16)
       doc.setFont('helvetica', 'bold')
-      doc.text('C.K. CLASSES', 20, 16)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() : 'INSTITUTION', 20, 16)
       doc.setFontSize(9)
       doc.setFont('helvetica', 'normal')
       doc.text('TEACHER INSTRUCTOR REPORT', 20, 24)
@@ -585,7 +585,7 @@ export default function Subjects() {
         doc.setTextColor(255, 255, 255)
         doc.setFontSize(14)
         doc.setFont('helvetica', 'bold')
-        doc.text('C.K. Classes - Subjects Directory Report', 14, 15)
+        doc.text((user?.tenantName || 'Institution') + ' - Subjects Directory Report', 14, 15)
         
         doc.setFontSize(8)
         doc.setFont('helvetica', 'normal')

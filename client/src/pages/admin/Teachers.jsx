@@ -320,7 +320,7 @@ export default function Teachers() {
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
-      doc.text('C.K. CLASSES', 15, 6.5)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() : 'INSTITUTION', 15, 6.5)
 
       // Subheader Text: Teacher ID Card label
       doc.setFont('helvetica', 'bold')
@@ -450,7 +450,7 @@ export default function Teachers() {
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(20)
-      doc.text('C.K. CLASSES', 15, 16)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() : 'INSTITUTION', 15, 16)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
       doc.text('COACHING CLASS ERP SYSTEM - TEACHER PROFILE REPORT', 15, 22)
@@ -884,7 +884,7 @@ export default function Teachers() {
       doc.setTextColor(255, 255, 255)
       doc.setFont('Helvetica', 'bold')
       doc.setFontSize(16)
-      doc.text('C.K. CLASSES ERP', 14, 18)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() + ' ERP' : 'INSTITUTION ERP', 14, 18)
       doc.setFontSize(10)
       doc.setFont('Helvetica', 'normal')
       doc.text('Teacher Directory Report', 14, 24)

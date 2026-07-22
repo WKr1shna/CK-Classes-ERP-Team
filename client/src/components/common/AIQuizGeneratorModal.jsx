@@ -227,7 +227,7 @@ export const AIQuizGeneratorModal = ({ isOpen, onClose, initialResource = null }
               <div className="p-6 space-y-6">
                 {/* Institutional Header */}
                 <div className="text-center border-b border-slate-200 pb-4">
-                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">C.K. CLASSES ACADEMIC ASSESSMENT</h2>
+                  <h2 className="text-xl font-bold text-slate-900 tracking-tight">{user?.tenantName ? user.tenantName.toUpperCase() + ' ACADEMIC ASSESSMENT' : 'ACADEMIC ASSESSMENT'}</h2>
                   <p className="text-sm font-semibold text-indigo-600 mt-0.5">{quizData.title || `${quizData.topic} Test Paper`}</p>
                   <div className="flex items-center justify-between text-xs text-slate-500 mt-3 pt-2 border-t border-slate-100">
                     <span><strong>Class:</strong> {quizData.className}</span>

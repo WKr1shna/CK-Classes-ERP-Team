@@ -639,7 +639,7 @@ export default function Users() {
           </div>
           <h1 className="text-2xl font-black tracking-tight text-slate-900">Users & Access Management</h1>
           <p className="text-xs font-semibold text-slate-500 mt-0.5">
-            Manage accounts, roles, access, and security across C.K. Classes.
+            Manage accounts, roles, access, and security across {user?.tenantName || 'the institution'}.
           </p>
         </div>
 

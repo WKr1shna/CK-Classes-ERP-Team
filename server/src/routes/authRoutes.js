@@ -233,7 +233,8 @@ router.post('/login', async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         sessionId: newSession.sessionId,
-        tenantId: tenant._id.toString()
+        tenantId: tenant._id.toString(),
+        tenantName: tenant.institutionName || tenant.name || 'Institution'
       }
     })
   } catch (error) {
@@ -621,6 +622,7 @@ router.post('/reset-password/:token', async (req, res, next) => {
 router.get('/me', verifyToken, async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).select('-passwordHash')
+    const tenant = await Tenant.findById(user.tenantId)
 
     if (!user || !user.isActive) {
       return res.status(401).json({
@@ -637,7 +639,9 @@ router.get('/me', verifyToken, async (req, res, next) => {
         email: user.email,
         role: user.role,
         firstName: user.firstName,
-        lastName: user.lastName
+        lastName: user.lastName,
+        tenantId: user.tenantId,
+        tenantName: tenant ? (tenant.institutionName || tenant.name || 'Institution') : 'Institution'
       }
     })
   } catch (error) {

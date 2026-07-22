@@ -779,7 +779,7 @@ export default function Students() {
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(8.5)
-      doc.text('C.K. CLASSES', 15, 6.5)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() : 'INSTITUTION', 15, 6.5)
 
       // Subheader Text: Student ID Card label
       doc.setFont('helvetica', 'bold')
@@ -1126,7 +1126,7 @@ export default function Students() {
       doc.setTextColor(255, 255, 255)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(20)
-      doc.text('C.K. CLASSES', 15, 16)
+      doc.text(user?.tenantName ? user.tenantName.toUpperCase() : 'INSTITUTION', 15, 16)
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(9)
       doc.text('COACHING CLASS ERP SYSTEM - STUDENT PROFILE REPORT', 15, 22)
