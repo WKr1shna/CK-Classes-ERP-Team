@@ -205,12 +205,7 @@ export default function Home() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  const statItems = [
-    { value: '10,000+', label: 'Students Enrolled' },
-    { value: '98%', label: 'Exam Success Rate' },
-    { value: '15+', label: 'Years of Excellence' },
-    { value: '50+', label: 'Expert Faculty' }
-  ]
+
 
   const erpFeatures = [
     {
@@ -401,25 +396,7 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto px-6 relative z-10 space-y-24">
 
-          {/* Statistics Cards Grid with Peachy White Light Bars */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 w-full pt-8">
-            {statItems.map((item, idx) => (
-              <motion.div
-                key={idx}
-                whileHover={{ y: -6, scale: 1.03 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="p-6 bg-gradient-to-b from-[#0F172A] via-[#0B132B] to-[#030712] border border-[#FFD8C4]/40 rounded-3xl shadow-2xl flex flex-col items-center text-center relative group overflow-hidden"
-              >
-                <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[#FFF5ED] via-[#FFD8C4] to-[#FFB394] opacity-90 group-hover:shadow-[0_0_20px_rgba(255,216,196,0.9)] transition-all duration-300 rounded-t-full" />
-                <h3 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
-                  <AnimatedCounter value={item.value} />
-                </h3>
-                <p className="text-xs text-[#FFE4D6] font-extrabold uppercase tracking-widest mt-2">
-                  {item.label}
-                </p>
-              </motion.div>
-            ))}
-          </div>
+
 
           {/* ERP Core Features Section */}
           <div id="features" className="space-y-10 pt-6">
