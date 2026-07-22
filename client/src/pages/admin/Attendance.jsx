@@ -535,7 +535,7 @@ export default function Attendance() {
   })
 
   return (
-    <div className="flex-1 w-full h-full text-slate-800 flex flex-col gap-5 select-none min-h-0 bg-transparent print:bg-white print:p-0 print:m-0">
+    <div className="flex-1 w-full h-full text-slate-800 flex flex-col gap-2.5 select-none min-h-0 bg-transparent print:bg-white print:p-0 print:m-0">
       
       {/* Inject print-only stylesheet */}
       <style dangerouslySetInnerHTML={{__html: `
@@ -604,29 +604,29 @@ export default function Attendance() {
         )}
       </AnimatePresence>
 
-      {/* 1. Header & Breadcrumbs Section */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0 print:hidden">
-        <div className="text-left space-y-1">
-          <div className="flex items-center gap-1.5 text-[10px] font-extrabold text-slate-400 tracking-wider uppercase select-none">
+      {/* 1. Compact Header & Breadcrumbs Section */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 shrink-0 print:hidden">
+        <div className="text-left space-y-0.5">
+          <div className="flex items-center gap-1.5 text-[9px] font-extrabold text-slate-400 tracking-wider uppercase select-none">
             <span>Admin</span>
             <span>/</span>
             <span className="text-brand-blue-600">Attendance</span>
           </div>
-          <h2 className="text-2xl font-black text-slate-800 tracking-tight leading-none mt-1">
+          <h2 className="text-xl font-black text-slate-800 tracking-tight leading-none mt-0.5">
             Attendance Management
           </h2>
-          <p className="text-[11px] font-bold text-slate-400 mt-1.5">
+          <p className="text-[10.5px] font-bold text-slate-400 mt-0.5">
             Mark student attendance, override submissions, lock sessions, and view reports
           </p>
         </div>
       </div>
 
-      {/* Stats cards grid */}
+      {/* 2. Compact Stats cards grid */}
       <div 
         style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(4, minmax(0, 1fr))', 
-          gap: '16px' 
+          gap: '10px' 
         }} 
         className="shrink-0 print:hidden"
       >
@@ -637,7 +637,7 @@ export default function Attendance() {
           icon={Clock}
           iconBgColor="bg-blue-50"
           iconColor="text-blue-500"
-          className="py-3 px-5"
+          className="py-2.5 px-4 rounded-xl"
         />
         <DashboardStatCard
           title="Attendance Submitted"
@@ -647,7 +647,7 @@ export default function Attendance() {
           iconBgColor="bg-emerald-50"
           iconColor="text-emerald-500"
           valueColor="text-emerald-600"
-          className="py-3 px-5"
+          className="py-2.5 px-4 rounded-xl"
         />
         <DashboardStatCard
           title="Pending Attendance"
@@ -657,7 +657,7 @@ export default function Attendance() {
           iconBgColor="bg-amber-50"
           iconColor="text-amber-500"
           valueColor="text-amber-650"
-          className="py-3 px-5"
+          className="py-2.5 px-4 rounded-xl"
         />
         <DashboardStatCard
           title="Overall Attendance %"
@@ -667,31 +667,31 @@ export default function Attendance() {
           iconBgColor="bg-purple-50"
           iconColor="text-purple-500"
           valueColor="text-purple-650"
-          className="py-3 px-5"
+          className="py-2.5 px-4 rounded-xl"
         />
       </div>
 
-      {/* 2. Controls & Filters Row */}
+      {/* 3. Compact Controls & Filters Toolbar */}
       <div 
-        style={{ borderRadius: '24px', border: '1px solid #ECECEC' }}
-        className="py-5 px-6 bg-white shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex flex-col md:flex-row md:items-center justify-between gap-6 shrink-0 print:hidden"
+        style={{ borderRadius: '16px', border: '1px solid #ECECEC' }}
+        className="py-2 px-3 bg-white shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex flex-col xl:flex-row xl:items-center justify-between gap-2 shrink-0 print:hidden"
       >
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative w-52 h-10">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-44 h-8">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
             <input
               type="text"
               placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="h-full w-full pl-10 pr-4 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white text-xs font-semibold rounded-full focus:outline-none transition-all placeholder:text-slate-400 shadow-sm"
+              className="h-full w-full pl-8 pr-3 bg-slate-50 border border-slate-200 focus:border-blue-500 focus:bg-white text-[11px] font-semibold rounded-full focus:outline-none transition-all placeholder:text-slate-400 shadow-2xs"
             />
           </div>
 
           <select
             value={classFilter}
             onChange={(e) => setClassFilter(e.target.value)}
-            className="h-10 w-40 px-4 bg-white border border-slate-200 rounded-full text-xs font-extrabold text-slate-550 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+            className="h-8 px-3 bg-white border border-slate-200 rounded-full text-[11px] font-bold text-slate-650 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
           >
             <option value="">All Classes</option>
             {classesList.map(c => <option key={c} value={c}>{c}</option>)}
@@ -700,7 +700,7 @@ export default function Attendance() {
           <select
             value={teacherFilter}
             onChange={(e) => setTeacherFilter(e.target.value)}
-            className="h-10 w-44 px-4 bg-white border border-slate-200 rounded-full text-xs font-extrabold text-slate-550 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+            className="h-8 px-3 bg-white border border-slate-200 rounded-full text-[11px] font-bold text-slate-650 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
           >
             <option value="">All Teachers</option>
             {teachers.map(t => (
@@ -713,7 +713,7 @@ export default function Attendance() {
           <select
             value={subjectFilter}
             onChange={(e) => setSubjectFilter(e.target.value)}
-            className="h-10 w-44 px-4 bg-white border border-slate-200 rounded-full text-xs font-extrabold text-slate-550 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+            className="h-8 px-3 bg-white border border-slate-200 rounded-full text-[11px] font-bold text-slate-650 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
           >
             <option value="">All Subjects</option>
             {subjects.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
@@ -723,53 +723,53 @@ export default function Attendance() {
             type="date"
             value={dateFilter}
             onChange={(e) => setDateFilter(e.target.value)}
-            className="h-10 w-40 px-4 bg-white border border-slate-200 rounded-full text-xs font-extrabold text-slate-555 focus:outline-none focus:border-blue-500 cursor-pointer shadow-sm"
+            className="h-8 px-3 bg-white border border-slate-200 rounded-full text-[11px] font-bold text-slate-650 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
           />
 
           <button
             onClick={handleClearFilters}
-            className="h-10 px-4.5 border border-slate-200 hover:bg-slate-50 text-xs font-extrabold text-slate-500 rounded-full flex items-center justify-center cursor-pointer transition-colors active:scale-95 shadow-sm"
+            className="h-8 px-3 border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-500 rounded-full flex items-center justify-center cursor-pointer transition-colors active:scale-95 shadow-2xs"
             title="Clear All Filters"
           >
             Clear Filters
           </button>
 
-          <div className="h-6 w-[1px] bg-slate-200 mx-1 hidden md:block" />
+          <div className="h-5 w-[1px] bg-slate-200 mx-0.5 hidden xl:block" />
 
-          {/* Renamed "Take Attendance" button */}
+          {/* Take Attendance Primary Action */}
           <button
             onClick={handleOpenLectureSelect}
-            className="h-10 px-5 bg-brand-blue-500 hover:bg-brand-blue-600 text-xs font-extrabold text-white rounded-full flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors active:scale-95"
+            className="h-8 px-3.5 bg-brand-blue-500 hover:bg-brand-blue-600 text-[11px] font-extrabold text-white rounded-full flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors active:scale-95"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             <span>Take Attendance</span>
           </button>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setIsSettingsOpen(true)}
-            className="h-10 px-4.5 rounded-full border border-slate-200 hover:bg-slate-50 text-xs font-extrabold text-slate-555 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+            className="h-8 px-3 rounded-full border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-650 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
             title="Configure Thresholds / System Parameters"
           >
-            <Settings className="h-4 w-4 text-slate-500" />
-            <span>Attendance Settings</span>
+            <Settings className="h-3.5 w-3.5 text-slate-500" />
+            <span className="hidden sm:inline">Attendance Settings</span>
           </button>
           <button
             onClick={() => navigate('/admin/attendance/history')}
-            className="h-10 px-4.5 rounded-full border border-slate-200 hover:bg-slate-50 text-xs font-extrabold text-slate-555 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+            className="h-8 px-3 rounded-full border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-650 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
             title="View Attendance History"
           >
-            <Calendar className="h-4 w-4 text-brand-blue-500" />
-            <span>Attendance History</span>
+            <Calendar className="h-3.5 w-3.5 text-brand-blue-500" />
+            <span className="hidden sm:inline">Attendance History</span>
           </button>
           <button
             onClick={() => navigate('/admin/attendance/analytics')}
-            className="h-10 px-4.5 rounded-full border border-slate-200 hover:bg-slate-50 text-xs font-extrabold text-slate-555 flex items-center justify-center gap-1.5 shadow-sm cursor-pointer transition-colors"
+            className="h-8 px-3 rounded-full border border-slate-200 hover:bg-slate-50 text-[11px] font-bold text-slate-650 flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer transition-colors"
             title="View Attendance Analytics"
           >
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-            <span>Attendance Analytics</span>
+            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+            <span className="hidden sm:inline">Attendance Analytics</span>
           </button>
         </div>
       </div>
@@ -794,26 +794,26 @@ export default function Attendance() {
         </div>
       </div>
 
-      {/* 3. Main Attendance Table Card */}
+      {/* 4. Main Attendance Table Card (Tighter padding & rounded corners) */}
       <div 
-        style={{ borderRadius: '28px', border: '1px solid #ECECEC', padding: '28px' }}
-        className="bg-white shadow-[0_8px_30px_rgba(0,0,0,0.01)] flex-grow flex flex-col justify-between overflow-hidden min-h-0 print:border-none print:shadow-none print:p-0 print-main-card"
+        style={{ borderRadius: '16px', border: '1px solid #ECECEC', padding: '16px' }}
+        className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex-grow flex flex-col justify-between overflow-hidden min-h-0 print:border-none print:shadow-none print:p-0 print-main-card"
       >
         <div className="overflow-y-auto overflow-x-auto custom-scrollbar flex-grow min-h-0 pr-1 print:overflow-visible">
           <table className="w-full text-left min-w-[950px] border-collapse">
             <thead className="bg-slate-50/55 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest select-none sticky top-0 bg-white z-10">
               <tr>
-                <th className="py-4 pl-7 text-left">Date</th>
-                <th className="py-4 px-4">Class</th>
-                <th className="py-4 px-4">Subject</th>
-                <th className="py-4 px-4">Teacher</th>
-                <th className="py-4 px-4">Period</th>
-                <th className="py-4 px-4 text-center">Attendance %</th>
-                <th className="py-4 px-4 text-center">Present</th>
-                <th className="py-4 px-4 text-center">Absent</th>
-                <th className="py-4 px-4 text-center">Late</th>
-                <th className="py-4 px-4 text-center">Status</th>
-                <th className="py-4 px-7 text-center print:hidden">Actions</th>
+                <th className="py-2.5 pl-4 text-left">Date</th>
+                <th className="py-2.5 px-3">Class</th>
+                <th className="py-2.5 px-3">Subject</th>
+                <th className="py-2.5 px-3">Teacher</th>
+                <th className="py-2.5 px-3">Period</th>
+                <th className="py-2.5 px-3 text-center">Attendance %</th>
+                <th className="py-2.5 px-3 text-center">Present</th>
+                <th className="py-2.5 px-3 text-center">Absent</th>
+                <th className="py-2.5 px-3 text-center">Late</th>
+                <th className="py-2.5 px-3 text-center">Status</th>
+                <th className="py-2.5 px-4 text-center print:hidden">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50 font-semibold text-xs text-slate-700">
@@ -842,43 +842,43 @@ export default function Attendance() {
                     className="hover:bg-slate-50/65 group transition-colors cursor-pointer"
                     onClick={() => handleOpenViewModal(session)}
                   >
-                    <td className="py-4 pl-7 text-slate-800 font-extrabold">
+                    <td className="py-2.5 pl-4 text-slate-800 font-extrabold">
                       {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
                     </td>
-                    <td className="py-4 px-4 font-black text-brand-blue-700">{session.classId}</td>
-                    <td className="py-4 px-4 text-slate-800 font-bold">{session.subjectId?.name || 'N/A'}</td>
-                    <td className="py-4 px-4 text-slate-500">
+                    <td className="py-2.5 px-3 font-black text-brand-blue-700">{session.classId}</td>
+                    <td className="py-2.5 px-3 text-slate-800 font-bold">{session.subjectId?.name || 'N/A'}</td>
+                    <td className="py-2.5 px-3 text-slate-500">
                       {session.teacherId ? `${session.teacherId.firstName || ''} ${session.teacherId.lastName || ''}`.trim() : 'Unassigned'}
                     </td>
-                    <td className="py-4 px-4 text-slate-400">
+                    <td className="py-2.5 px-3 text-slate-400">
                       <span className="font-extrabold text-slate-650">{session.periodId?.name || 'N/A'}</span>
                       {session.periodId?.startTime && (
-                        <span className="text-[10px] block mt-0.5 font-medium text-slate-400">({session.periodId.startTime} - {session.periodId.endTime})</span>
+                        <span className="text-[9.5px] block mt-0.5 font-medium text-slate-400">({session.periodId.startTime} - {session.periodId.endTime})</span>
                       )}
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    <td className="py-2.5 px-3 text-center">
                       <span className={cn(
-                        "font-black text-sm",
+                        "font-black text-xs",
                         (session.stats?.attendancePercentage || 0) >= 80 ? "text-emerald-600" : (session.stats?.attendancePercentage || 0) >= 50 ? "text-amber-500" : "text-rose-500"
                       )}>
                         {session.stats?.attendancePercentage || 0}%
                       </span>
                     </td>
-                    <td className="py-4 px-4 text-center text-emerald-650 font-bold">
+                    <td className="py-2.5 px-3 text-center text-emerald-650 font-bold">
                       {session.stats?.presentCount || 0}
                     </td>
-                    <td className="py-4 px-4 text-center text-rose-550 font-bold">
+                    <td className="py-2.5 px-3 text-center text-rose-550 font-bold">
                       {session.stats?.absentCount || 0}
                     </td>
-                    <td className="py-4 px-4 text-center text-amber-555 font-bold">
+                    <td className="py-2.5 px-3 text-center text-amber-555 font-bold">
                       {session.stats?.lateCount || 0}
                     </td>
-                    <td className="py-4 px-4 text-center">
-                      <span className="inline-flex px-2.5 py-1 text-[10px] font-black rounded-full border bg-slate-50 border-slate-100 text-slate-600 uppercase tracking-wider">
+                    <td className="py-2.5 px-3 text-center">
+                      <span className="inline-flex px-2 py-0.5 text-[9.5px] font-black rounded-full border bg-slate-50 border-slate-100 text-slate-600 uppercase tracking-wider">
                         {session.status}
                       </span>
                     </td>
-                    <td className="py-4 px-7 text-center print:hidden" onClick={(e) => e.stopPropagation()}>
+                    <td className="py-2.5 px-4 text-center print:hidden" onClick={(e) => e.stopPropagation()}>
                       <div className="flex items-center justify-center gap-2">
                         {/* Lock / Unlock Toggle button */}
                         <button
