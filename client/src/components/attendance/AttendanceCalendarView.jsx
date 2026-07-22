@@ -6,6 +6,8 @@ import AttendanceProgress from '@/components/attendance/AttendanceProgress'
 export default function AttendanceCalendarView({
   sessions = [],
   loading = false,
+  selectedSessionIds = [],
+  onToggleSelectSession,
   onOpenViewModal
 }) {
   if (loading) {
@@ -90,14 +92,29 @@ export default function AttendanceCalendarView({
                   ? `${session.teacherId.firstName || ''} ${session.teacherId.lastName || ''}`.trim()
                   : 'Unassigned'
                 const pct = session.stats?.attendancePercentage || 0
+                const isSelected = selectedSessionIds.includes(session._id)
 
                 return (
                   <div
                     key={session._id}
                     onClick={() => onOpenViewModal(session)}
-                    className="p-3 rounded-xl border border-slate-100 hover:border-brand-blue-300 bg-slate-50/50 hover:bg-white shadow-2xs hover:shadow-sm transition-all duration-200 flex items-center justify-between cursor-pointer group"
+                    className={cn(
+                      "p-3 rounded-xl border transition-all duration-200 flex items-center justify-between cursor-pointer group",
+                      isSelected ? "border-brand-blue-500 bg-brand-blue-50/20 ring-1 ring-brand-blue-500" : "border-slate-100 hover:border-brand-blue-300 bg-slate-50/50 hover:bg-white shadow-2xs hover:shadow-sm"
+                    )}
                   >
                     <div className="flex items-center gap-3 min-w-0">
+                      {onToggleSelectSession && (
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            e.stopPropagation()
+                            onToggleSelectSession(session._id)
+                          }}
+                          className="h-4 w-4 rounded border-slate-300 text-brand-blue-600 focus:ring-brand-blue-500 cursor-pointer shrink-0"
+                        />
+                      )}
                       <div className="h-9 w-9 rounded-xl bg-white border border-slate-200/80 text-slate-700 font-mono text-[10px] font-black flex flex-col items-center justify-center shrink-0">
                         <span>{session.periodId?.name || 'P'}</span>
                         <span className="text-[8px] font-bold text-slate-400 leading-tight">

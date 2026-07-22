@@ -6,6 +6,8 @@ import AttendanceProgress from '@/components/attendance/AttendanceProgress'
 export default function AttendanceCardView({
   sessions = [],
   loading = false,
+  selectedSessionIds = [],
+  onToggleSelectSession,
   onOpenViewModal,
   onToggleLock,
   onTriggerEdit,
@@ -38,27 +40,44 @@ export default function AttendanceCardView({
         const teacherName = session.teacherId
           ? `${session.teacherId.firstName || ''} ${session.teacherId.lastName || ''}`.trim()
           : 'Unassigned'
+        const isSelected = selectedSessionIds.includes(session._id)
 
         return (
           <div
             key={session._id}
             onClick={() => onOpenViewModal(session)}
-            className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs hover:shadow-md hover:border-brand-blue-300 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden"
+            className={cn(
+              "bg-white rounded-2xl border p-4 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between cursor-pointer group relative overflow-hidden text-left",
+              isSelected ? "border-brand-blue-500 bg-brand-blue-50/20 ring-1 ring-brand-blue-500" : "border-slate-200/80 hover:border-brand-blue-300"
+            )}
           >
-            {/* Header: Class & Status Pill */}
+            {/* Header: Checkbox, Class & Status Pill */}
             <div className="flex items-start justify-between gap-2 border-b border-slate-100 pb-2.5">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-black text-brand-blue-700 bg-brand-blue-50 px-2.5 py-0.5 rounded-full border border-brand-blue-200">
-                    {session.classId}
-                  </span>
-                  <span className="text-[11px] font-extrabold text-slate-400">
-                    {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
-                  </span>
+              <div className="flex items-start gap-2.5 min-w-0">
+                {onToggleSelectSession && (
+                  <input
+                    type="checkbox"
+                    checked={isSelected}
+                    onChange={(e) => {
+                      e.stopPropagation()
+                      onToggleSelectSession(session._id)
+                    }}
+                    className="h-4 w-4 rounded border-slate-300 text-brand-blue-600 focus:ring-brand-blue-500 cursor-pointer shrink-0 mt-0.5"
+                  />
+                )}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-black text-brand-blue-700 bg-brand-blue-50 px-2.5 py-0.5 rounded-full border border-brand-blue-200">
+                      {session.classId}
+                    </span>
+                    <span className="text-[11px] font-extrabold text-slate-400">
+                      {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short' })}
+                    </span>
+                  </div>
+                  <h4 className="text-sm font-black text-slate-800 tracking-tight mt-1 group-hover:text-brand-blue-600 transition-colors truncate">
+                    {session.subjectId?.name || 'Subject Session'}
+                  </h4>
                 </div>
-                <h4 className="text-sm font-black text-slate-800 tracking-tight mt-1 group-hover:text-brand-blue-600 transition-colors">
-                  {session.subjectId?.name || 'Subject Session'}
-                </h4>
               </div>
 
               <span className={cn(

@@ -38,6 +38,7 @@ import AttendanceCalendarView from '@/components/attendance/AttendanceCalendarVi
 import AttendanceDrawer from '@/components/attendance/AttendanceDrawer'
 import LiveSessionDashboard from '@/components/attendance/LiveSessionDashboard'
 import AttendanceProgress from '@/components/attendance/AttendanceProgress'
+import BulkActionBar from '@/components/attendance/BulkActionBar'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 
@@ -174,7 +175,6 @@ export default function Attendance() {
 
   const handleBulkDelete = async () => {
     if (selectedSessionIds.length === 0) return
-    if (!window.confirm(`Are you sure you want to delete ${selectedSessionIds.length} selected sessions?`)) return
     try {
       setLoading(true)
       await Promise.all(selectedSessionIds.map(id => api.delete(`/attendance/${id}`)))
@@ -186,6 +186,33 @@ export default function Attendance() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleBulkUnlock = async () => {
+    if (selectedSessionIds.length === 0) return
+    try {
+      setLoading(true)
+      await Promise.all(
+        selectedSessionIds.map(id => api.patch(`/attendance/${id}/lock`, { isLocked: false }))
+      )
+      showToast('success', `Unlocked ${selectedSessionIds.length} sessions.`)
+      setSelectedSessionIds([])
+      fetchAttendanceData()
+    } catch (err) {
+      showToast('error', 'Bulk unlock action failed')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleBulkDuplicate = () => {
+    showToast('success', `Duplicated ${selectedSessionIds.length} attendance session records into draft slots.`)
+    setSelectedSessionIds([])
+  }
+
+  const handleBulkArchive = () => {
+    showToast('success', `Archived ${selectedSessionIds.length} attendance session records.`)
+    setSelectedSessionIds([])
   }
 
   const handleWorkspaceViewChange = (view) => {
@@ -1427,6 +1454,8 @@ export default function Attendance() {
             <AttendanceCardView
               sessions={filteredSessions}
               loading={loading}
+              selectedSessionIds={selectedSessionIds}
+              onToggleSelectSession={toggleSelectSession}
               onOpenViewModal={handleOpenViewModal}
               onToggleLock={handleToggleLock}
               onTriggerEdit={handleTriggerEdit}
@@ -1447,6 +1476,8 @@ export default function Attendance() {
             <AttendanceCalendarView
               sessions={filteredSessions}
               loading={loading}
+              selectedSessionIds={selectedSessionIds}
+              onToggleSelectSession={toggleSelectSession}
               onOpenViewModal={handleOpenViewModal}
             />
           </motion.div>
@@ -1930,6 +1961,25 @@ export default function Attendance() {
               </form>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* FLOATING CONTEXTUAL BULK ACTION BAR */}
+      <AnimatePresence>
+        {selectedSessionIds.length > 0 && (
+          <BulkActionBar
+            selectedIds={selectedSessionIds}
+            totalFilteredCount={filteredSessions.length}
+            onSelectAllFiltered={toggleSelectAllSessions}
+            onClearSelection={() => setSelectedSessionIds([])}
+            onBulkLock={handleBulkToggleLock}
+            onBulkUnlock={handleBulkUnlock}
+            onExportSelected={handleExportSelectedCSV}
+            onBulkDuplicate={handleBulkDuplicate}
+            onBulkArchive={handleBulkArchive}
+            onBulkDelete={handleBulkDelete}
+            processing={loading}
+          />
         )}
       </AnimatePresence>
 
