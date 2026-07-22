@@ -32,6 +32,9 @@ import DashboardStatCard from '@/components/common/DashboardStatCard'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import AttendanceViewSwitcher from '@/components/attendance/AttendanceViewSwitcher'
+import AttendanceCardView from '@/components/attendance/AttendanceCardView'
+import AttendanceCalendarView from '@/components/attendance/AttendanceCalendarView'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 
@@ -95,6 +98,16 @@ export default function Attendance() {
   const [statusFilter, setStatusFilter] = useState('')
   const [dateFilter, setDateFilter] = useState(new Date().toISOString().split('T')[0])
   const [isAdvancedFiltersOpen, setIsAdvancedFiltersOpen] = useState(false)
+
+  // Workspace View State (table | cards | calendar) with localStorage persistence
+  const [activeWorkspaceView, setActiveWorkspaceView] = useState(() => {
+    return localStorage.getItem('attendance_workspace_view') || 'table'
+  })
+
+  const handleWorkspaceViewChange = (view) => {
+    setActiveWorkspaceView(view)
+    localStorage.setItem('attendance_workspace_view', view)
+  }
 
   const handleClearFilters = () => {
     setClassFilter('')
@@ -681,6 +694,12 @@ export default function Attendance() {
             />
           </div>
 
+          {/* View Switcher Segmented Control */}
+          <AttendanceViewSwitcher
+            activeView={activeWorkspaceView}
+            onChange={handleWorkspaceViewChange}
+          />
+
           {/* Primary CTA: Take Attendance */}
           <button
             onClick={handleOpenLectureSelect}
@@ -1078,132 +1097,178 @@ export default function Attendance() {
         </div>
       </div>
 
-      {/* 4. Main Attendance Table Card (Tighter padding & rounded corners) */}
-      <div 
-        style={{ borderRadius: '16px', border: '1px solid #ECECEC', padding: '16px' }}
-        className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex-grow flex flex-col justify-between overflow-hidden min-h-0 print:border-none print:shadow-none print:p-0 print-main-card"
-      >
-        <div className="overflow-y-auto overflow-x-auto custom-scrollbar flex-grow min-h-0 pr-1 print:overflow-visible">
-          <table className="w-full text-left min-w-[950px] border-collapse">
-            <thead className="bg-slate-50/55 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest select-none sticky top-0 bg-white z-10">
-              <tr>
-                <th className="py-2.5 pl-4 text-left">Date</th>
-                <th className="py-2.5 px-3">Class</th>
-                <th className="py-2.5 px-3">Subject</th>
-                <th className="py-2.5 px-3">Teacher</th>
-                <th className="py-2.5 px-3">Period</th>
-                <th className="py-2.5 px-3 text-center">Attendance %</th>
-                <th className="py-2.5 px-3 text-center">Present</th>
-                <th className="py-2.5 px-3 text-center">Absent</th>
-                <th className="py-2.5 px-3 text-center">Late</th>
-                <th className="py-2.5 px-3 text-center">Status</th>
-                <th className="py-2.5 px-4 text-center print:hidden">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50 font-semibold text-xs text-slate-700">
-              {loading ? (
-                <tr className="print:hidden">
-                  <td colSpan="10" className="py-24 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3">
-                      <RefreshCw className="h-7 w-7 text-blue-500 animate-spin" />
-                      <span className="text-xs font-bold text-slate-400">Loading attendance reports...</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : filteredSessions.length === 0 ? (
-                <tr>
-                  <td colSpan="11" className="py-24 text-center">
-                    <div className="flex flex-col items-center justify-center gap-2">
-                      <Calendar className="h-8 w-8 text-slate-350" />
-                      <span className="text-xs font-black text-slate-455">No matching attendance sessions found.</span>
-                    </div>
-                  </td>
-                </tr>
-              ) : (
-                filteredSessions.map((session) => (
-                  <tr 
-                    key={session._id} 
-                    className="hover:bg-slate-50/65 group transition-colors cursor-pointer"
-                    onClick={() => handleOpenViewModal(session)}
-                  >
-                    <td className="py-2.5 pl-4 text-slate-800 font-extrabold">
-                      {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
-                    </td>
-                    <td className="py-2.5 px-3 font-black text-brand-blue-700">{session.classId}</td>
-                    <td className="py-2.5 px-3 text-slate-800 font-bold">{session.subjectId?.name || 'N/A'}</td>
-                    <td className="py-2.5 px-3 text-slate-500">
-                      {session.teacherId ? `${session.teacherId.firstName || ''} ${session.teacherId.lastName || ''}`.trim() : 'Unassigned'}
-                    </td>
-                    <td className="py-2.5 px-3 text-slate-400">
-                      <span className="font-extrabold text-slate-650">{session.periodId?.name || 'N/A'}</span>
-                      {session.periodId?.startTime && (
-                        <span className="text-[9.5px] block mt-0.5 font-medium text-slate-400">({session.periodId.startTime} - {session.periodId.endTime})</span>
-                      )}
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
-                      <span className={cn(
-                        "font-black text-xs",
-                        (session.stats?.attendancePercentage || 0) >= 80 ? "text-emerald-600" : (session.stats?.attendancePercentage || 0) >= 50 ? "text-amber-500" : "text-rose-500"
-                      )}>
-                        {session.stats?.attendancePercentage || 0}%
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-emerald-650 font-bold">
-                      {session.stats?.presentCount || 0}
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-rose-550 font-bold">
-                      {session.stats?.absentCount || 0}
-                    </td>
-                    <td className="py-2.5 px-3 text-center text-amber-555 font-bold">
-                      {session.stats?.lateCount || 0}
-                    </td>
-                    <td className="py-2.5 px-3 text-center">
-                      <span className="inline-flex px-2 py-0.5 text-[9.5px] font-black rounded-full border bg-slate-50 border-slate-100 text-slate-600 uppercase tracking-wider">
-                        {session.status}
-                      </span>
-                    </td>
-                    <td className="py-2.5 px-4 text-center print:hidden" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex items-center justify-center gap-2">
-                        {/* Lock / Unlock Toggle button */}
-                        <button
-                          onClick={() => handleToggleLock(session)}
-                          className={cn(
-                            "h-8 w-8 rounded-full flex items-center justify-center transition-all border",
-                            session.isLocked 
-                              ? "bg-rose-50 hover:bg-rose-100 border-rose-100 text-rose-600" 
-                              : "bg-emerald-50 hover:bg-emerald-100 border-emerald-100 text-emerald-600"
-                          )}
-                          title={session.isLocked ? "Unlock Attendance Session" : "Lock Attendance Session"}
-                        >
-                          {session.isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
-                        </button>
-                        
-                        {/* Edit Button */}
-                        <button
-                          onClick={() => handleTriggerEdit(session)}
-                          className="h-8 w-8 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-555 hover:text-blue-600 flex items-center justify-center transition-all"
-                          title="Edit Session Records"
-                        >
-                          <Edit3 className="h-3.5 w-3.5" />
-                        </button>
-
-                        {/* Delete Button */}
-                        <button
-                          onClick={() => handleDeleteSession(session)}
-                          className="h-8 w-8 rounded-full border border-slate-100 hover:bg-red-50 text-slate-555 hover:text-red-655 flex items-center justify-center transition-all"
-                          title="Delete Session"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
+      {/* 4. Main Attendance Workspace Container (Table, Card, or Calendar) */}
+      <AnimatePresence mode="wait">
+        {activeWorkspaceView === 'table' && (
+          <motion.div 
+            key="table-view"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            style={{ borderRadius: '16px', border: '1px solid #ECECEC', padding: '16px' }}
+            className="bg-white shadow-[0_4px_20px_rgba(0,0,0,0.01)] flex-grow flex flex-col justify-between overflow-hidden min-h-0 print:border-none print:shadow-none print:p-0 print-main-card"
+          >
+            <div className="overflow-y-auto overflow-x-auto custom-scrollbar flex-grow min-h-0 pr-1 print:overflow-visible">
+              <table className="w-full text-left min-w-[950px] border-collapse">
+                <thead className="bg-slate-50/55 border-b border-slate-100 text-[10px] font-black text-slate-400 uppercase tracking-widest select-none sticky top-0 bg-white z-10">
+                  <tr>
+                    <th className="py-2.5 pl-4 text-left">Date</th>
+                    <th className="py-2.5 px-3">Class</th>
+                    <th className="py-2.5 px-3">Subject</th>
+                    <th className="py-2.5 px-3">Teacher</th>
+                    <th className="py-2.5 px-3">Period</th>
+                    <th className="py-2.5 px-3 text-center">Attendance %</th>
+                    <th className="py-2.5 px-3 text-center">Present</th>
+                    <th className="py-2.5 px-3 text-center">Absent</th>
+                    <th className="py-2.5 px-3 text-center">Late</th>
+                    <th className="py-2.5 px-3 text-center">Status</th>
+                    <th className="py-2.5 px-4 text-center print:hidden">Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                </thead>
+                <tbody className="divide-y divide-slate-50 font-semibold text-xs text-slate-700">
+                  {loading ? (
+                    <tr className="print:hidden">
+                      <td colSpan="11" className="py-24 text-center">
+                        <div className="flex flex-col items-center justify-center gap-3">
+                          <RefreshCw className="h-7 w-7 text-blue-500 animate-spin" />
+                          <span className="text-xs font-bold text-slate-400">Loading attendance reports...</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : filteredSessions.length === 0 ? (
+                    <tr>
+                      <td colSpan="11" className="py-24 text-center">
+                        <div className="flex flex-col items-center justify-center gap-2">
+                          <Calendar className="h-8 w-8 text-slate-350" />
+                          <span className="text-xs font-black text-slate-455">No matching attendance sessions found.</span>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredSessions.map((session) => (
+                      <tr 
+                        key={session._id} 
+                        className="hover:bg-slate-50/65 group transition-colors cursor-pointer"
+                        onClick={() => handleOpenViewModal(session)}
+                      >
+                        <td className="py-2.5 pl-4 text-slate-800 font-extrabold">
+                          {new Date(session.date).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}
+                        </td>
+                        <td className="py-2.5 px-3 font-black text-brand-blue-700">{session.classId}</td>
+                        <td className="py-2.5 px-3 text-slate-800 font-bold">{session.subjectId?.name || 'N/A'}</td>
+                        <td className="py-2.5 px-3 text-slate-500">
+                          {session.teacherId ? `${session.teacherId.firstName || ''} ${session.teacherId.lastName || ''}`.trim() : 'Unassigned'}
+                        </td>
+                        <td className="py-2.5 px-3 text-slate-400">
+                          <span className="font-extrabold text-slate-650">{session.periodId?.name || 'N/A'}</span>
+                          {session.periodId?.startTime && (
+                            <span className="text-[9.5px] block mt-0.5 font-medium text-slate-400">({session.periodId.startTime} - {session.periodId.endTime})</span>
+                          )}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span className={cn(
+                            "font-black text-xs",
+                            (session.stats?.attendancePercentage || 0) >= 80 ? "text-emerald-600" : (session.stats?.attendancePercentage || 0) >= 50 ? "text-amber-500" : "text-rose-500"
+                          )}>
+                            {session.stats?.attendancePercentage || 0}%
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-emerald-650 font-bold">
+                          {session.stats?.presentCount || 0}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-rose-550 font-bold">
+                          {session.stats?.absentCount || 0}
+                        </td>
+                        <td className="py-2.5 px-3 text-center text-amber-555 font-bold">
+                          {session.stats?.lateCount || 0}
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <span className="inline-flex px-2 py-0.5 text-[9.5px] font-black rounded-full border bg-slate-50 border-slate-100 text-slate-600 uppercase tracking-wider">
+                            {session.status}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-4 text-center print:hidden" onClick={(e) => e.stopPropagation()}>
+                          <div className="flex items-center justify-center gap-2">
+                            {/* Lock / Unlock Toggle button */}
+                            <button
+                              onClick={() => handleToggleLock(session)}
+                              className={cn(
+                                "h-8 w-8 rounded-full flex items-center justify-center transition-all border",
+                                session.isLocked 
+                                  ? "bg-rose-50 hover:bg-rose-100 border-rose-100 text-rose-600" 
+                                  : "bg-emerald-50 hover:bg-emerald-100 border-emerald-100 text-emerald-600"
+                              )}
+                              title={session.isLocked ? "Unlock Attendance Session" : "Lock Attendance Session"}
+                            >
+                              {session.isLocked ? <Lock className="h-3.5 w-3.5" /> : <Unlock className="h-3.5 w-3.5" />}
+                            </button>
+                            
+                            {/* Edit Button */}
+                            <button
+                              onClick={() => handleTriggerEdit(session)}
+                              className="h-8 w-8 rounded-full border border-slate-100 hover:bg-slate-50 text-slate-555 hover:text-blue-600 flex items-center justify-center transition-all"
+                              title="Edit Session Records"
+                            >
+                              <Edit3 className="h-3.5 w-3.5" />
+                            </button>
+
+                            {/* Delete Button */}
+                            <button
+                              onClick={() => handleDeleteSession(session)}
+                              className="h-8 w-8 rounded-full border border-slate-100 hover:bg-red-50 text-slate-555 hover:text-red-655 flex items-center justify-center transition-all"
+                              title="Delete Session"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </motion.div>
+        )}
+
+        {activeWorkspaceView === 'cards' && (
+          <motion.div
+            key="cards-view"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="flex-grow flex flex-col min-h-0 overflow-hidden"
+          >
+            <AttendanceCardView
+              sessions={filteredSessions}
+              loading={loading}
+              onOpenViewModal={handleOpenViewModal}
+              onToggleLock={handleToggleLock}
+              onTriggerEdit={handleTriggerEdit}
+              onDeleteSession={handleDeleteSession}
+            />
+          </motion.div>
+        )}
+
+        {activeWorkspaceView === 'calendar' && (
+          <motion.div
+            key="calendar-view"
+            initial={{ opacity: 0, y: 4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.15 }}
+            className="flex-grow flex flex-col min-h-0 overflow-hidden"
+          >
+            <AttendanceCalendarView
+              sessions={filteredSessions}
+              loading={loading}
+              onOpenViewModal={handleOpenViewModal}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* A. LECTURE SELECTION MODAL */}
       <AnimatePresence>
