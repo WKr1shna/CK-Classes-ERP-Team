@@ -22,6 +22,7 @@ const aiRoutes = require('./routes/aiRoutes')
 const tenantRoutes = require('./routes/tenantRoutes')
 const roomRoutes = require('./routes/roomRoutes')
 const holidayRoutes = require('./routes/holidayRoutes')
+const dashboardRoutes = require('./routes/dashboardRoutes')
 const { getAllowedOrigins } = require('./config/corsOrigins')
 
 const app = express()
@@ -88,6 +89,7 @@ app.use('/api/v1/users', userRoutes)
 app.use('/api/v1/activation', activationRoutes)
 app.use('/api/v1/ai', aiRoutes)
 app.use('/api/v1/tenants', tenantRoutes)
+app.use('/api/v1/dashboard', dashboardRoutes)
 
 // Universal fallback
 app.use((req, res, next) => {

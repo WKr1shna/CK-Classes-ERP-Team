@@ -688,6 +688,31 @@ export default function AdminDashboard() {
   const [selectedDay, setSelectedDay] = useState(3) // default selection
   const [greeting, setGreeting] = useState('Afternoon')
 
+  const [dashboardData, setDashboardData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchKPIs = async () => {
+      try {
+        const token = localStorage.getItem('token')
+        const response = await fetch(`${import.meta.env.VITE_API_URL}/dashboard/kpis`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+        const data = await response.json()
+        if (data.success) {
+          setDashboardData(data.data)
+        }
+      } catch (err) {
+        console.error('Error fetching KPIs:', err)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchKPIs()
+  }, [])
+
   // Calculate dynamic greeting based on time of day
   useEffect(() => {
     const hr = new Date().getHours()
@@ -739,7 +764,7 @@ export default function AdminDashboard() {
     {
       id: 'students',
       title: 'Total Students',
-      value: '1,248',
+      value: isLoading ? '...' : (dashboardData?.totalStudents ?? '0'),
       description: 'Active registered learners',
       icon: Users,
       isPositive: true,
@@ -751,7 +776,7 @@ export default function AdminDashboard() {
     {
       id: 'teachers',
       title: 'Total Teachers',
-      value: '32',
+      value: isLoading ? '...' : (dashboardData?.totalTeachers ?? '0'),
       description: 'Expert faculty mentors',
       icon: GraduationCap,
       isPositive: true,
@@ -763,7 +788,7 @@ export default function AdminDashboard() {
     {
       id: 'parents',
       title: 'Total Parents',
-      value: '982',
+      value: isLoading ? '...' : (dashboardData?.totalParents ?? '0'),
       description: 'Linked parent profiles',
       icon: UserCheck,
       isPositive: true,
@@ -775,7 +800,7 @@ export default function AdminDashboard() {
     {
       id: 'batches',
       title: 'Active Batches',
-      value: '18',
+      value: isLoading ? '...' : (dashboardData?.activeBatches ?? '0'),
       description: 'Concurrent running classes',
       icon: Layers,
       isPositive: true,
@@ -787,7 +812,7 @@ export default function AdminDashboard() {
     {
       id: 'revenue',
       title: 'Revenue',
-      value: '₹12.48L',
+      value: isLoading ? '...' : (dashboardData?.revenueFormatted ?? '₹0'),
       description: 'Accrued tuition earnings',
       icon: TrendingUp,
       isPositive: true,
@@ -799,7 +824,7 @@ export default function AdminDashboard() {
     {
       id: 'attendance',
       title: 'Attendance',
-      value: '94.2%',
+      value: isLoading ? '...' : (dashboardData?.attendanceFormatted ?? '0%'),
       description: 'Class check-in average',
       icon: CheckCircle,
       isPositive: false,
@@ -811,7 +836,7 @@ export default function AdminDashboard() {
     {
       id: 'homework',
       title: 'Homework',
-      value: '42',
+      value: isLoading ? '...' : (dashboardData?.homework ?? '0'),
       description: 'Assignments pending review',
       icon: ClipboardList,
       isPositive: false,
@@ -823,7 +848,7 @@ export default function AdminDashboard() {
     {
       id: 'fees',
       title: 'Fee Status',
-      value: '86.5%',
+      value: isLoading ? '...' : (dashboardData?.feeStatusFormatted ?? '0%'),
       description: 'Fee installments cleared',
       icon: Wallet,
       isPositive: true,
