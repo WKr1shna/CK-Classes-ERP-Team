@@ -4,6 +4,49 @@ const bcrypt = require('bcryptjs')
 const Tenant = require('../models/Tenant')
 const User = require('../models/User')
 
+// GET /api/v1/tenants
+// Internal endpoint to list all tenants (superadmin only)
+router.get('/', async (req, res, next) => {
+  try {
+    const secret = req.headers['x-superadmin-secret']
+    if (!secret || secret !== process.env.SUPERADMIN_SECRET) {
+      return res.status(401).json({
+        success: false,
+        error: { message: 'Unauthorized access to internal endpoints.' }
+      })
+    }
+
+    const tenants = await Tenant.find({}).sort({ createdAt: -1 })
+    
+    // For convenience, let's also fetch the admin emails to return in the list
+    const tenantIds = tenants.map(t => t._id)
+    const admins = await User.find({ tenantId: { $in: tenantIds }, role: 'admin' }).select('email firstName lastName tenantId')
+    
+    const formattedTenants = tenants.map(t => {
+      const admin = admins.find(a => a.tenantId.toString() === t._id.toString())
+      return {
+        _id: t._id,
+        name: t.name,
+        slug: t.slug,
+        contactEmail: t.contactEmail,
+        isActive: t.isActive,
+        subscriptionStatus: t.subscriptionStatus,
+        isInternal: t.isInternal || false,
+        createdAt: t.createdAt,
+        admin: admin ? { name: `${admin.firstName} ${admin.lastName}`, email: admin.email } : null
+      }
+    })
+
+    return res.status(200).json({
+      success: true,
+      count: formattedTenants.length,
+      data: formattedTenants
+    })
+  } catch (error) {
+    next(error)
+  }
+})
+
 // POST /api/v1/tenants/register
 router.post('/register', async (req, res, next) => {
   try {
