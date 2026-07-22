@@ -36,6 +36,7 @@ import AttendanceViewSwitcher from '@/components/attendance/AttendanceViewSwitch
 import AttendanceCardView from '@/components/attendance/AttendanceCardView'
 import AttendanceCalendarView from '@/components/attendance/AttendanceCalendarView'
 import AttendanceDrawer from '@/components/attendance/AttendanceDrawer'
+import LiveSessionDashboard from '@/components/attendance/LiveSessionDashboard'
 
 const spring = { type: 'spring', stiffness: 350, damping: 28 }
 
@@ -1001,6 +1002,15 @@ export default function Attendance() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* 2.5 Real-Time Live Session Operations Dashboard */}
+      <LiveSessionDashboard
+        sessions={filteredSessions}
+        loading={loading}
+        onOpenViewModal={handleOpenViewModal}
+        onSelectSlot={handleSelectSlot}
+        onTriggerEdit={handleTriggerEdit}
+      />
 
       {/* 3. STICKY WORKSPACE TOOLBAR (Stays visible while scrolling, with Dynamic Selection Mode) */}
       <div className="sticky top-0 z-30 shrink-0 print:hidden select-none space-y-2 bg-white/95 backdrop-blur-md py-2 px-3 rounded-2xl border border-slate-200/80 shadow-xs transition-all duration-200">
