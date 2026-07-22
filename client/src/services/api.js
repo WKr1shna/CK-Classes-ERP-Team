@@ -205,6 +205,15 @@ api.get = async (url, config = {}) => {
       cacheKey += '?' + JSON.stringify(config.params)
     } catch {}
   }
+  
+  // SECURE MULTI-TENANT FIX: Scope the cache key to the currently logged in user
+  // This prevents data bleeding if multiple tenants are tested on the same browser
+  try {
+    const token = typeof localStorage !== 'undefined' ? (localStorage.getItem('ck_access_token') || localStorage.getItem('ck_token')) : null
+    if (token) {
+      cacheKey += '|auth=' + token.slice(-10) // Just use the signature part for scoping
+    }
+  } catch {}
 
   const cached = apiCache.get(cacheKey)
   if (cached) {
