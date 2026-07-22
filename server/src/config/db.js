@@ -28,13 +28,13 @@ const connectDB = async () => {
       let defaultTenant = await Tenant.findOne({ slug: 'ck-classes-main' })
       if (!defaultTenant) {
         defaultTenant = await Tenant.create({
-          name: 'C.K. Classes Primary',
+          name: 'Primary Default Tenant',
           slug: 'ck-classes-main',
-          contactEmail: 'admin@ckclasses.com',
+          contactEmail: 'admin@example.com',
           isActive: true,
           subscriptionStatus: 'active'
         })
-        console.log(`[Auto-Seed] Created primary default tenant: C.K. Classes Primary (${defaultTenant._id})`)
+        console.log(`[Auto-Seed] Created primary default tenant: Primary Default Tenant (${defaultTenant._id})`)
       }
     } catch (seedErr) {
       console.error(`[Auto-Seed Warning] Could not check or create bootstrap tenant: ${seedErr.message}`)

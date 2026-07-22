@@ -53,7 +53,7 @@ app.use(cors({
 app.get('/', (req, res) => {
   res.status(200).json({
     success: true,
-    service: 'C.K. Classes ERP Management API',
+    service: 'Multi-Tenant ERP Management API',
     version: '1.0.0',
     status: 'active',
     healthEndpoint: '/health',

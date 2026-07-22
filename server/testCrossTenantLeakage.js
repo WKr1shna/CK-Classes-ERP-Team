@@ -2,8 +2,8 @@ const mongoose = require('mongoose')
 const dotenv = require('dotenv')
 const path = require('path')
 
-// Load environment
-dotenv.config({ path: path.join(__dirname, '.env') })
+// Strict Test Guardrail: DO NOT load production .env
+// dotenv.config({ path: path.join(__dirname, '.env') }) 
 
 // Import models
 const Tenant = require('./src/models/Tenant')
@@ -31,10 +31,31 @@ const ResourceService = require('./src/services/ResourceService')
 const RoomService = require('./src/services/RoomService')
 const StudentFeeService = require('./src/services/StudentFeeService')
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/ck_classes_test'
+// Require separate TEST_MONGO_URI
+const MONGO_URI = process.env.TEST_MONGO_URI || 'mongodb://localhost:27017/ck_classes_test'
 
 async function runLeakageTest() {
   console.log('[Test] Connecting to MongoDB...')
+  
+  // Guardrail: Print resolved connection target (hiding credentials)
+  const parsedUri = new URL(MONGO_URI);
+  const targetHost = parsedUri.host;
+  let targetDbName = parsedUri.pathname.replace(/^\//, ''); // e.g., 'ck_classes_test'
+  
+  // If connection string has query params but no db name (like some Atlas URIs)
+  if (!targetDbName) {
+    targetDbName = 'test'; // Fallback for checking, but we enforce the rule below
+  }
+
+  console.log(`[Guardrail] Target Connection: ${parsedUri.protocol}//${targetHost}/${targetDbName}`);
+
+  // Guardrail: Hardcoded safety check
+  if (!targetDbName.includes('test') && !targetDbName.includes('_test')) {
+    console.error(`[Guardrail] FATAL: Resolved database name "${targetDbName}" does not contain 'test' or '_test'.`);
+    console.error('[Guardrail] Refusing to run destructive operations on a potentially live database.');
+    process.exit(1);
+  }
+
   await mongoose.connect(MONGO_URI)
   console.log('[Test] Connected to MongoDB.')
 
@@ -172,6 +193,27 @@ async function runLeakageTest() {
       throw new Error(`FAIL: StudentFee dashboard aggregation leaked! Expected totalFeeCollected=5000, totalExpected=10000, got totalFeeCollected=${feeStatsA.totalFeeCollected}, totalExpected=${feeStatsA.totalFeeCollected + feeStatsA.totalPendingAmount}`)
     }
     console.log(`✔ StudentFee aggregation check passed: Tenant A totalFeeCollected=${feeStatsA.totalFeeCollected}, totalExpected=${feeStatsA.totalFeeCollected + feeStatsA.totalPendingAmount} (0 leak from Tenant B).`)
+
+    // 11. Check cross-tenant UPDATE and DELETE isolation
+    console.log('\n--- Running Cross-Tenant Write/Delete Verification ---')
+    const studentsBRes = await StudentService.getAllStudents({ tenantId: tenantBId })
+    const studentBId = studentsBRes.students[0]._id
+
+    try {
+      await StudentService.updateStudent(studentBId, { firstName: 'Hacked' }, tenantAId)
+      throw new Error('FAIL: Was able to UPDATE Tenant B student using Tenant A context!')
+    } catch (err) {
+      if (err.message.includes('FAIL:')) throw err;
+      console.log('✔ Cross-tenant UPDATE isolation passed: Tenant A cannot update Tenant B student.')
+    }
+
+    try {
+      await StudentService.deleteStudent(studentBId, tenantAId)
+      throw new Error('FAIL: Was able to DELETE Tenant B student using Tenant A context!')
+    } catch (err) {
+      if (err.message.includes('FAIL:')) throw err;
+      console.log('✔ Cross-tenant DELETE isolation passed: Tenant A cannot delete Tenant B student.')
+    }
 
     console.log('\n✔ ALL CROSS-TENANT ISOLATION TESTS PASSED WITH ZERO LEAKAGE!')
   } finally {

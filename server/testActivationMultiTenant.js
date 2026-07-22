@@ -1,5 +1,5 @@
 const path = require('path')
-require('dotenv').config({ path: path.resolve(__dirname, '.env') })
+// Strict Test Guardrail: DO NOT load production .env
 const http = require('http')
 const mongoose = require('mongoose')
 const express = require('express')
@@ -26,10 +26,36 @@ app.use((err, req, res, next) => {
   })
 })
 
-const runTests = async () => {
-  const uri = process.env.MONGO_URI ? process.env.MONGO_URI.trim() : null
-  await mongoose.connect(uri, { dbName: 'ck_classes' })
-  console.log('[Test] Connected to MongoDB')
+// Strict Test Guardrail: DO NOT load production .env
+// dotenv.config({ path: path.join(__dirname, '.env') }) 
+
+// Require separate TEST_MONGO_URI
+const MONGO_URI = process.env.TEST_MONGO_URI || 'mongodb://localhost:27017/ck_classes_test'
+
+async function runTest() {
+  console.log('[Test] Connecting to MongoDB...')
+  
+  // Guardrail: Print resolved connection target (hiding credentials)
+  const parsedUri = new URL(MONGO_URI);
+  const targetHost = parsedUri.host;
+  let targetDbName = parsedUri.pathname.replace(/^\//, ''); // e.g., 'ck_classes_test'
+  
+  // If connection string has query params but no db name (like some Atlas URIs)
+  if (!targetDbName) {
+    targetDbName = 'test'; // Fallback for checking
+  }
+
+  console.log(`[Guardrail] Target Connection: ${parsedUri.protocol}//${targetHost}/${targetDbName}`);
+
+  // Guardrail: Hardcoded safety check
+  if (!targetDbName.includes('test') && !targetDbName.includes('_test')) {
+    console.error(`[Guardrail] FATAL: Resolved database name "${targetDbName}" does not contain 'test' or '_test'.`);
+    console.error('[Guardrail] Refusing to run destructive operations on a potentially live database.');
+    process.exit(1);
+  }
+
+  await mongoose.connect(MONGO_URI)
+  console.log('[Test] Connected to MongoDB.')
 
   const collisionStudentId = `COLLISION-STU-${Date.now()}`
   const alphaSlug = `test-alpha-${Date.now()}`

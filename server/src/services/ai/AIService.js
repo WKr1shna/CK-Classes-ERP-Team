@@ -1,5 +1,6 @@
 const User = require('../../models/User')
 const Student = require('../../models/Student')
+const Tenant = require('../../models/Tenant')
 const Teacher = require('../../models/Teacher')
 const Subject = require('../../models/Subject')
 const Announcement = require('../../models/Announcement')
@@ -28,8 +29,19 @@ class AIService {
    */
   async buildContextForUser(user) {
     const role = (user.role || '').toLowerCase()
+    
+    let institutionName = 'C.K. Classes'
+    try {
+      if (user.tenantId) {
+        const tenant = await Tenant.findById(user.tenantId).select('institutionName name')
+        if (tenant) institutionName = tenant.institutionName || tenant.name || institutionName
+      }
+    } catch (e) {
+      console.error('[AIService] Error fetching tenant for branding', e)
+    }
+
     const contextLines = [
-      `System Role: You are C.K. ERP AI Assistant, an intelligent institutional AI for C.K. Classes.`,
+      `System Role: You are an intelligent institutional AI Assistant for ${institutionName}.`,
       `Logged-in User Identity: ${user.firstName || user.email} (${user.email}), Role: ${user.role}.`,
       `Current Date & Time: ${new Date().toISOString()}`,
       `CRITICAL INSTRUCTION: Use the provided MONGODB DATA SUMMARY below to answer questions about student counts, staff, exams, and announcements accurately. Never say data is missing when counts are listed below.`
@@ -222,7 +234,17 @@ class AIService {
     const className = params.className || 'Class 10'
     const topic = params.topic || params.subject || 'General Studies'
 
-    const systemPrompt = `You are an expert academic examiner for C.K. Classes. Your task is to generate a structured exam question paper based on the provided study resource / topic.
+    let institutionName = 'C.K. Classes'
+    try {
+      if (user.tenantId) {
+        const tenant = await Tenant.findById(user.tenantId).select('institutionName name')
+        if (tenant) institutionName = tenant.institutionName || tenant.name || institutionName
+      }
+    } catch (e) {
+      console.error('[AIService] Error fetching tenant for branding', e)
+    }
+
+    const systemPrompt = `You are an expert academic examiner for ${institutionName}. Your task is to generate a structured exam question paper based on the provided study resource / topic.
 
 CRITICAL: Output MUST be a valid JSON object matching this exact schema and NOTHING ELSE (no markdown backticks, no markdown formatting outside JSON):
 {

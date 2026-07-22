@@ -51,7 +51,7 @@ const generateTokens = (user, sessionId, explicitTenantId) => {
 }
 
 // Helper: Shared Cookie Options (single source of truth for domain/sameSite/secure)
-// - COOKIE_DOMAIN: set only when frontend & backend share a root domain (e.g. ".ckclasses.com")
+// - COOKIE_DOMAIN: set only when frontend & backend share a root domain (e.g. ".example.com")
 //   Leave unset for cross-site hosts (e.g. app.onrender.com / api.onrender.com) - in that case
 //   set COOKIE_SAMESITE=none explicitly, since cross-site cookies require SameSite=None; Secure.
 // Used consistently by setCookies() and every clearCookie() call below so logout/reset-password
@@ -131,7 +131,7 @@ router.post('/login', async (req, res, next) => {
       tenantId: tenant._id,
       $or: [
         { email: cleanInput },
-        { email: `${cleanInput}@ckclasses.com` }
+        { email: `${cleanInput}@example.com` }
       ]
     })
     if (!user) {

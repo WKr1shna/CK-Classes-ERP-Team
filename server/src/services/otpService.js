@@ -1,5 +1,6 @@
 const crypto = require('crypto')
 const Otp = require('../models/Otp')
+const Tenant = require('../models/Tenant')
 const ApiError = require('../utils/ApiError')
 const emailService = require('./emailService')
 const smsService = require('./smsService')
@@ -101,12 +102,22 @@ class OtpService {
       createdAt: now
     })
 
+    let tenantName = 'C.K. Classes ERP'
+    try {
+      if (tenantId) {
+        const tenant = await Tenant.findById(tenantId).select('institutionName name')
+        if (tenant) tenantName = tenant.institutionName || tenant.name || tenantName
+      }
+    } catch (e) {
+      console.error('[otpService] Error fetching tenant for branding', e)
+    }
+
     // 5. Dispatch via specified delivery channel
     if (channel === 'email') {
       if (process.env.REDIS_URL) {
-        await emailTransactionalQueue.add('send-otp', { to: cleanIdentifier, otp: rawOtp, purpose, expiresMinutes: 5 })
+        await emailTransactionalQueue.add('send-otp', { to: cleanIdentifier, otp: rawOtp, purpose, expiresMinutes: 5, tenantName })
       } else {
-        await emailService.sendOtpEmail({ to: cleanIdentifier, otp: rawOtp, purpose, expiresMinutes: 5 })
+        await emailService.sendOtpEmail({ to: cleanIdentifier, otp: rawOtp, purpose, expiresMinutes: 5, tenantName })
       }
     } else if (channel === 'sms') {
       await smsService.sendOtpSms({ phone: cleanIdentifier, otp: rawOtp, purpose })
